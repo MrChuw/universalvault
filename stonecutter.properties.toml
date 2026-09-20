@@ -1,0 +1,23 @@
+# Propriedades centralizadas. Cada seção corresponde a um subprojeto
+# definido em settings.gradle.kts.
+
+mod.id = "universal_vault"
+mod.name = "Universal Vault"
+mod.group = "com.mrchuw.universalvault"
+mod.version = "1.0.0"
+mod.license = "MIT"
+
+["1.21.11"]
+mod.mc_compat = "[1.21.11]"
+mod.mc_releases = ["1.21.11"]
+deps.neo_loader = "21.11.45"
+
+["26.1.2"]
+mod.mc_compat = "[26.1.2]"
+mod.mc_releases = ["26.1.2"]
+deps.neo_loader = "26.1.2.109"
+
+["26.2"]
+mod.mc_compat = "[26.2, 26.3)"
+mod.mc_releases = ["26.2"]
+deps.neo_loader = "26.2.0.88"

@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "com.mrchuw.universalvault.mixin",
+  "compatibilityLevel": "${java}",
+  "mixins": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

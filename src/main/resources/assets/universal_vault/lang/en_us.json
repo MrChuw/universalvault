@@ -1,0 +1,28 @@
+{
+  "gui.universal_vault.global_title": "Global Vault",
+  "gui.universal_vault.personal_title": "Personal Vault",
+  "gui.universal_vault.vault_title": "Vault",
+  "gui.universal_vault.filter_title": "Vault I/O Filter",
+  "gui.universal_vault.player_vault_title": "Vault: %s",
+  "gui.universal_vault.search_hint": "Search...",
+  "gui.universal_vault.cleared": "Configuration removed",
+  "gui.universal_vault.target_global": "Global",
+  "gui.universal_vault.target_changed": "Vault I/O now targeting: %s",
+
+  "gui.universal_vault.sort.count_desc": "Count ↓",
+  "gui.universal_vault.sort.count_asc":  "Count ↑",
+  "gui.universal_vault.sort.name_asc":   "Name A-Z",
+  "gui.universal_vault.sort.name_desc":  "Name Z-A",
+  "gui.universal_vault.sort.mod":        "Mod",
+
+  "key.universal_vault.keys": "Universal Vault",
+  "key.category.universal_vault.keys": "Universal Vault",
+  "key.universal_vault.open_global": "Open Global Vault",
+  "key.universal_vault.open_personal": "Open Personal Vault",
+
+  "block.universal_vault.vault_io": "Vault I/O",
+  "item.universal_vault.vault_io": "Vault I/O",
+  "item.universal_vault.vault_remote": "Vault Remote",
+  "item.universal_vault.vault_io.configured": "Configured",
+  "item.universal_vault.vault_io.configured.hint": "Shift+Right-click to clear"
+}

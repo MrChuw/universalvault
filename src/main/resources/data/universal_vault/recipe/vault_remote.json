@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "E",
+    "S",
+    "S"
+  ],
+  "key": {
+    "E": "minecraft:ender_eye",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "universal_vault:vault_remote",
+    "count": 1
+  }
+}

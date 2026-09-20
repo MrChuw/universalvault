@@ -1,0 +1,29 @@
+license = "${license}"
+
+modLoader = "javafml"
+loaderVersion = "[1,)"
+
+[[mods]]
+modId = "${id}"
+displayName = "${name}"
+version = "${version}"
+authors = "MrChuw"
+description = "Global and personal vaults with I/O, commands and keybinds."
+logoFile = "assets/universal_vault/icon.png"
+
+[[mixins]]
+config = "universal_vault.mixins.json"
+
+[[dependencies.${id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft}"
+ordering = "NONE"
+side = "BOTH"

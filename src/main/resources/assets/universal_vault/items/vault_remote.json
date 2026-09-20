@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "universal_vault:item/vault_remote"
+  }
+}
