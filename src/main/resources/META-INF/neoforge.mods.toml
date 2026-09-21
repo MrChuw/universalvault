@@ -1,31 +1,30 @@
-license = "${license}"
-
 modLoader = "javafml"
-loaderVersion = "[1,)"
+loaderVersion = "[2,)"
+license = "${mod_license}"
+issueTrackerURL = "${mod_repo_url}/issues"
 
 [[mods]]
-modId = "${id}"
-displayName = "${name}"
-version = "${version}"
-authors = "MrChuw"
-description = "Global and personal vaults with I/O, commands and keybinds."
-iconFile = "assets/universal_vault/icon.png"
-logoFile = "assets/universal_vault/icon.png"
-
+modId = "${mod_id}"
+displayName = "${mod_name}"
+version = "${mod_version}"
+logoFile = "${mod_logo}"
+iconFile = "${mod_logo}"
+authors = "${mod_authors}"
+description = '''${mod_description}'''
 
 [[mixins]]
 config = "universal_vault.mixins.json"
 
-[[dependencies.${id}]]
+[[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "required"
-versionRange = "[1.21.10,26.3.7-beta)"
+versionRange = "${neoforge_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${id}]]
+[[dependencies.${mod_id}]]
 modId = "minecraft"
 type = "required"
-versionRange = "${minecraft}"
+versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"

@@ -33,10 +33,10 @@ public class VaultIOBlockItem extends BlockItem {
                 stack.remove(ModRegistry.VAULT_IO_DATA.get());
 
                 //? if >=26.1 {
-                player.sendOverlayMessage(Component.translatable("gui.universal_vault.cleared"));
-                 //?} else {
-                /*player.displayClientMessage(Component.translatable("gui.universal_vault.cleared"), true);
-                *///?}
+                /*player.sendOverlayMessage(Component.translatable("gui.universal_vault.cleared"));
+                *///?} else {
+                player.displayClientMessage(Component.translatable("gui.universal_vault.cleared"), true);
+                 //?}
             }
             return InteractionResult.SUCCESS;
         }

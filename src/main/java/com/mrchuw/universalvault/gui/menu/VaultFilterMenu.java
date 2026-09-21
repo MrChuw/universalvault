@@ -8,10 +8,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 //? if >=26.1 {
-import net.minecraft.world.inventory.ContainerInput;
-//?} else {
-/*import net.minecraft.world.inventory.ClickType;
- *///?}
+/*import net.minecraft.world.inventory.ContainerInput;
+*///?} else {
+import net.minecraft.world.inventory.ClickType;
+ //?}
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -49,6 +49,16 @@ public class VaultFilterMenu extends AbstractContainerMenu {
         }
     }
 
+    public VaultFilterMenu(int id, Inventory playerInv, BlockPos pos) {
+        this(id, playerInv, resolveBlockEntity(playerInv, pos));
+    }
+
+    private static VaultIOBlockEntity resolveBlockEntity(Inventory playerInv, BlockPos pos) {
+        BlockEntity be = playerInv.player.level().getBlockEntity(pos);
+        if (be instanceof VaultIOBlockEntity v) return v;
+        throw new IllegalStateException("Missing VaultIOBlockEntity at " + pos);
+    }
+
     public VaultFilterMenu(int id, Inventory playerInv, FriendlyByteBuf buf) {
         this(id, playerInv, resolveBlockEntity(playerInv, buf));
     }
@@ -63,12 +73,12 @@ public class VaultFilterMenu extends AbstractContainerMenu {
     public VaultIOBlockEntity getBlockEntity() { return blockEntity; }
 
     //? if >=26.1 {
-    @Override
-    public void clicked(int slotId, int button, @Nonnull ContainerInput containerInput, @Nonnull Player player) {
-    //?} else {
     /*@Override
+    public void clicked(int slotId, int button, @Nonnull ContainerInput containerInput, @Nonnull Player player) {
+    *///?} else {
+    @Override
     public void clicked(int slotId, int button, @Nonnull ClickType containerInput, @Nonnull Player player) {
-    *///?}
+    //?}
         if (slotId >= 0 && slotId < FILTER_SLOTS) {
             ItemStack carried = getCarried();
             if (!carried.isEmpty()) {

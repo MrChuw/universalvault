@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.gui.menu;
 
 import com.mrchuw.universalvault.UniversalVault;
-import com.mrchuw.universalvault.config.UniversalVaultConfig;
+import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.network.payload.S2CVaultSyncPayload;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.ItemKey;
@@ -26,7 +26,7 @@ import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
+import com.mrchuw.universalvault.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -92,7 +92,7 @@ public class VaultMenu extends AbstractContainerMenu {
     private void registerViewer() {
         if (player instanceof ServerPlayer sp && !player.level().isClientSide()) {
             VIEWERS.computeIfAbsent(targetVaultUUID, k -> Collections.synchronizedList(new ArrayList<>())).add(sp);
-            if (UniversalVaultConfig.CONFIG.debugLogging.get()) {
+            if (VaultConfig.get().debugLogging())  {
                 UniversalVault.LOGGER.info("VaultMenu registered viewer {} for vault {}",
                         sp.getName().getString(), targetVaultUUID);
             }
@@ -134,7 +134,7 @@ public class VaultMenu extends AbstractContainerMenu {
         if (storage == null) return;
 
         List<S2CVaultSyncPayload.Entry> entries = buildSyncEntries(storage, true);
-        PacketDistributor.sendToPlayer(serverPlayer, new S2CVaultSyncPayload(entries));
+        Platform.INSTANCE.sendToPlayer(serverPlayer, new S2CVaultSyncPayload(entries));   // ← mudou
     }
 
     private static List<S2CVaultSyncPayload.Entry> buildSyncEntries(VaultStorage storage, boolean resolvedOnly) {
@@ -202,7 +202,7 @@ public class VaultMenu extends AbstractContainerMenu {
             if (player.containerMenu instanceof VaultMenu menu
                     && menu.targetVaultUUID.equals(vaultUUID)
                     && player.isAlive()) {
-                PacketDistributor.sendToPlayer(player, payload);
+                Platform.INSTANCE.sendToPlayer(player, payload);
             }
         }
     }
@@ -217,7 +217,7 @@ public class VaultMenu extends AbstractContainerMenu {
 
     public static void processPendingSyncs(MinecraftServer server) {
         if (PENDING_SYNC.isEmpty()) return;
-        int interval = UniversalVaultConfig.CONFIG.syncIntervalTicks.get();
+        int interval = VaultConfig.get().syncIntervalTicks();
         if (++syncCooldown < interval) return;
         syncCooldown = 0;
 

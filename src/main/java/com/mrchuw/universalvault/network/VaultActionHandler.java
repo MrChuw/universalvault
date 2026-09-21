@@ -1,92 +1,21 @@
 package com.mrchuw.universalvault.network;
 
 import com.mrchuw.universalvault.UniversalVault;
-import com.mrchuw.universalvault.gui.VaultMenuHelper;
+import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
-import com.mrchuw.universalvault.network.payload.C2SRequestSyncPayload;
 import com.mrchuw.universalvault.network.payload.C2SVaultActionPayload;
-import com.mrchuw.universalvault.network.payload.C2SVaultOpenPayload;
-import com.mrchuw.universalvault.network.payload.S2CVaultSyncPayload;
 import com.mrchuw.universalvault.storage.ItemKey;
 import com.mrchuw.universalvault.storage.VaultManager;
 import com.mrchuw.universalvault.storage.VaultStorage;
 import java.util.UUID;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-//? if >=1.21.11 {
-import net.minecraft.server.permissions.Permissions;
- //?}
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-//? if >=26.3 {
-import net.minecraft.util.Prediction;
-//?}
+public final class VaultActionHandler {
 
-public class VaultNetwork {
+    private VaultActionHandler() {}
 
-    public static void register(IEventBus modBus) {
-        modBus.addListener(VaultNetwork::onRegisterPayloads);
-    }
-
-    private static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1");
-
-        registrar.playToServer(
-                C2SVaultActionPayload.TYPE,
-                C2SVaultActionPayload.STREAM_CODEC,
-                VaultNetwork::handleServerAction
-        );
-
-        registrar.playToClient(S2CVaultSyncPayload.TYPE, S2CVaultSyncPayload.STREAM_CODEC, (payload, ctx) ->
-                ctx.enqueueWork(() -> ClientPacketHandler.handleSync(payload))
-        );
-
-        registrar.playToServer(
-                C2SVaultOpenPayload.TYPE,
-                C2SVaultOpenPayload.STREAM_CODEC,
-                VaultNetwork::handleOpenVault
-        );
-
-        registrar.playToServer(C2SRequestSyncPayload.TYPE, C2SRequestSyncPayload.STREAM_CODEC, (payload, ctx) ->
-                ctx.enqueueWork(() -> {
-                    if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof VaultMenu menu) {
-                        menu.syncVaultData(sp);
-                    }
-                })
-        );
-    }
-
-    private static void handleOpenVault(C2SVaultOpenPayload payload, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            if (!(ctx.player() instanceof ServerPlayer player)) return;
-            UUID target = payload.targetVaultUUID();
-            if (target.equals(UniversalVault.GLOBAL_VAULT_UUID)) {
-                VaultMenuHelper.openVault(player, target, Component.translatable("gui.universal_vault.global_title"));
-            } else if (
-                    target.equals(player.getUUID())
-                            //? if >=1.21.11 {
-                            || player.permissions().hasPermission(Permissions.COMMANDS_OWNER)
-                             //?} else {
-                            /*|| player.hasPermissions(4)
-                *///?}
-            ) {
-                VaultMenuHelper.openVault(player, target, Component.translatable("gui.universal_vault.personal_title"));
-            }
-        });
-    }
-
-    private static void handleServerAction(C2SVaultActionPayload payload, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            if (!(ctx.player() instanceof ServerPlayer player)) return;
-            handleServerActionInternal(player, payload);
-        });
-    }
-
-    private static void handleServerActionInternal(ServerPlayer player, C2SVaultActionPayload payload) {
+    public static void handle(ServerPlayer player, C2SVaultActionPayload payload) {
         if (!(player.containerMenu instanceof VaultMenu vaultMenu)) return;
 
         UUID targetUUID = vaultMenu.getTargetVaultUUID();
@@ -167,10 +96,10 @@ public class VaultNetwork {
                 if (key == null) return;
                 ItemStack extracted = storage.extract(key, 1, false);
                 //? if <=26.2 {
-                /*if (!extracted.isEmpty()) player.drop(extracted, false);
-                 *///?} else {
-                if (!extracted.isEmpty()) player.drop(extracted, false, Prediction.PREDICTED);
-                //?}
+                if (!extracted.isEmpty()) player.drop(extracted, false);
+                 //?} else {
+                /*if (!extracted.isEmpty()) player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
+                *///?}
             }
             case DROP_STACK -> {
                 if (key == null) return;
@@ -180,16 +109,17 @@ public class VaultNetwork {
                 int toDrop = (int) Math.min(available, maxStack);
                 ItemStack extracted = storage.extract(key, toDrop, false);
                 //? if <=26.2 {
-                /*if (!extracted.isEmpty()) player.drop(extracted, false);
-                 *///?} else {
-                if (!extracted.isEmpty()) player.drop(extracted, false, Prediction.PREDICTED);
-                //?}
+                if (!extracted.isEmpty()) player.drop(extracted, false);
+                 //?} else {
+                /*if (!extracted.isEmpty()) player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
+                *///?}
             }
             case DEPOSIT_HELD -> {
                 ItemStack carried = player.containerMenu.getCarried();
                 if (carried.isEmpty()) break;
                 int amountToDeposit = payload.amount();
-                if (amountToDeposit <= 0 || amountToDeposit > carried.getCount()) amountToDeposit = carried.getCount();
+                if (amountToDeposit <= 0 || amountToDeposit > carried.getCount())
+                    amountToDeposit = carried.getCount();
                 insertAndShrinkCarried(player, storage, carried, carried.copyWithCount(amountToDeposit));
             }
             case DEPOSIT_SLOT -> {
@@ -233,7 +163,8 @@ public class VaultNetwork {
         }
     }
 
-    private static void insertAndShrinkCarried(ServerPlayer player, VaultStorage storage, ItemStack carried, ItemStack toInsert) {
+    private static void insertAndShrinkCarried(ServerPlayer player, VaultStorage storage,
+                                               ItemStack carried, ItemStack toInsert) {
         long inserted = storage.insert(toInsert, false);
         if (inserted > 0) {
             carried.shrink((int) inserted);

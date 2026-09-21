@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.storage;
 
 import com.mrchuw.universalvault.UniversalVault;
-import com.mrchuw.universalvault.config.UniversalVaultConfig;
+import com.mrchuw.universalvault.config.VaultConfig;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +23,7 @@ public class VaultStorage {
     }
 
     private static void debug(String msg, Object... args) {
-        if (UniversalVaultConfig.CONFIG.debugLogging.get()) {
+        if (VaultConfig.get().debugLogging()) {
             UniversalVault.LOGGER.info("[vault] " + msg, args);
         }
     }
@@ -35,13 +35,13 @@ public class VaultStorage {
 
         int countToInsert = stack.getCount();
 
-        int maxSlots = UniversalVaultConfig.CONFIG.maxSlots.get();
+        int maxSlots = VaultConfig.get().maxSlots();
         if (maxSlots > 0 && !items.containsKey(key) && items.size() >= maxSlots) {
             debug("insert rejected: maxSlots ({}) reached", maxSlots);
             return 0;
         }
 
-        long maxPerSlot = UniversalVaultConfig.CONFIG.maxPerSlot.get();
+        long maxPerSlot = VaultConfig.get().maxPerSlot();
         if (maxPerSlot > 0) {
             long current = items.getOrDefault(key, 0L);
             long space = maxPerSlot - current;
@@ -52,7 +52,7 @@ public class VaultStorage {
             countToInsert = (int) Math.min(countToInsert, space);
         }
 
-        long maxTotalItems = UniversalVaultConfig.CONFIG.maxTotalItems.get();
+        long maxTotalItems = VaultConfig.get().maxTotalItems();
         if (maxTotalItems > 0) {
             long total = 0;
             for (long v : items.values()) total += v;

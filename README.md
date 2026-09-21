@@ -1,5 +1,5 @@
 # Universal Vault
-A NeoForge mod for Minecraft 26.2, inspired by Terraria's [DragonVault]([https://steamcommunity.com/sharedfiles/filedetails/?id=2989967984](https://steamcommunity.com/sharedfiles/filedetails/?id=2989967984)). It adds
+A NeoForge mod for Minecraft 26.2, inspired by Terraria's [DragonVault](https://steamcommunity.com/sharedfiles/filedetails/?id=2989967984). It adds
 a shared, unlimited-capacity item vault: a global vault everyone shares, plus
 one personal vault per player.
 

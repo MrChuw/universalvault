@@ -1,6 +1,8 @@
-package com.mrchuw.universalvault.client;
+package com.mrchuw.universalvault.neoforge;
 
-import com.mrchuw.universalvault.UniversalVault;
+//? neoforge {
+/*import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.client.VaultKeyBindings;
 import com.mrchuw.universalvault.gui.screen.VaultFilterScreen;
 import com.mrchuw.universalvault.gui.screen.VaultScreen;
 import com.mrchuw.universalvault.registry.ModRegistry;
@@ -12,7 +14,7 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 @EventBusSubscriber(modid = UniversalVault.MOD_ID, value = Dist.CLIENT)
-public class UniversalVaultClient {
+public class NeoforgeClientEntrypoint {
 
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
@@ -31,3 +33,4 @@ public class UniversalVaultClient {
         VaultKeyBindings.handleClientTick();
     }
 }
+*///?}

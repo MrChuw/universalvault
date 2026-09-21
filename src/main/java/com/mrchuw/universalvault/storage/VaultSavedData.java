@@ -3,7 +3,7 @@ package com.mrchuw.universalvault.storage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.mrchuw.universalvault.UniversalVault;
-import com.mrchuw.universalvault.config.UniversalVaultConfig;
+import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,8 +13,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.UUIDUtil;
 //? if >=26.1 {
-import net.minecraft.resources.Identifier;
-//?}
+/*import net.minecraft.resources.Identifier;
+*///?}
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.datafix.DataFixTypes;
@@ -74,10 +74,10 @@ public class VaultSavedData extends SavedData {
 
     public static final SavedDataType<VaultSavedData> TYPE = new SavedDataType<>(
             //? if >=26.1 {
-            Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_data"),
-            //?} else {
-            /*UniversalVault.MOD_ID + "_vault_data",
-             *///?}
+            /*Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_data"),
+            *///?} else {
+            UniversalVault.MOD_ID + "_vault_data",
+             //?}
             VaultSavedData::new,
             CODEC,
             DataFixTypes.LEVEL
@@ -109,7 +109,7 @@ public class VaultSavedData extends SavedData {
             VaultSavedData.this.setDirty();
             if (VaultSavedData.this.level == null) return;
 
-            if (UniversalVaultConfig.CONFIG.syncOnEveryChange.get()) {
+            if (VaultConfig.get().syncOnEveryChange()) {
                 VaultMenu.broadcastVaultUpdate(uuid, VaultSavedData.this.level);
             } else {
                 VaultMenu.markPendingSync(uuid);
@@ -120,12 +120,12 @@ public class VaultSavedData extends SavedData {
     public static VaultSavedData get(ServerLevel level) {
         MinecraftServer server = level.getServer();
         //? if >=26.1 {
-        VaultSavedData data = server.getDataStorage().computeIfAbsent(TYPE);
+        /*VaultSavedData data = server.getDataStorage().computeIfAbsent(TYPE);
         data.setLevel(server.overworld());
-        //?} else {
-        /*VaultSavedData data = level.getDataStorage().computeIfAbsent(TYPE);
+        *///?} else {
+        VaultSavedData data = level.getDataStorage().computeIfAbsent(TYPE);
         data.setLevel(level);
-        *///?}
+        //?}
         return data;
     }
 }

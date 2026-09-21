@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.block.entity;
 
 import com.mrchuw.universalvault.UniversalVault;
-import com.mrchuw.universalvault.config.UniversalVaultConfig;
+import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.VaultManager;
 import com.mrchuw.universalvault.storage.VaultStorage;
@@ -61,8 +61,7 @@ public class VaultIOBlockEntity extends BlockEntity {
             setTargetVaultUUID(UniversalVault.GLOBAL_VAULT_UUID);
         }
 
-        if (player instanceof ServerPlayer sp
-                && UniversalVaultConfig.CONFIG.announceTargetOnCycle.get()) {
+        if (player instanceof ServerPlayer sp && VaultConfig.get().announceTargetOnCycle()) {
             String targetName = targetVaultUUID.equals(UniversalVault.GLOBAL_VAULT_UUID)
                     ? Component.translatable("gui.universal_vault.target_global").getString()
                     : player.getName().getString();
@@ -112,8 +111,7 @@ public class VaultIOBlockEntity extends BlockEntity {
         if (stack.isEmpty()) return false;
         if (!hasAnyFilter()) return true;
 
-        boolean whitelist = UniversalVaultConfig.CONFIG.defaultFilterMode.get()
-                == UniversalVaultConfig.FilterMode.WHITELIST;
+        boolean whitelist = VaultConfig.get().defaultFilterMode() == VaultConfig.FilterMode.WHITELIST;
 
         boolean matched = false;
         for (ItemStack filter : filters) {

@@ -1,7 +1,8 @@
-package com.mrchuw.universalvault.integration;
+package com.mrchuw.universalvault.neoforge;
 
-import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
-import com.mrchuw.universalvault.config.UniversalVaultConfig;
+//? neoforge {
+/*import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
+import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.storage.ItemKey;
 import com.mrchuw.universalvault.storage.VaultStorage;
 import java.util.ArrayList;
@@ -16,12 +17,12 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class VaultItemHandler implements ResourceHandler<ItemResource> {
+public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
 
     private final VaultIOBlockEntity blockEntity;
     private final VaultJournal journal = new VaultJournal();
 
-    public VaultItemHandler(VaultIOBlockEntity blockEntity) {
+    public NeoforgeItemHandler(VaultIOBlockEntity blockEntity) {
         this.blockEntity = blockEntity;
     }
 
@@ -30,7 +31,7 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
     }
 
     private boolean automationEnabled() {
-        return UniversalVaultConfig.CONFIG.hopperInteraction.get();
+        return VaultConfig.get().hopperInteraction();
     }
 
     private List<ItemKey> getCurrentKeys() {
@@ -206,3 +207,4 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
         }
     }
 }
+*///?}

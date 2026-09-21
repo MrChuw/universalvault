@@ -2,10 +2,10 @@ package com.mrchuw.universalvault.gui.screen;
 
 import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
 //? if >=26.1 {
-import net.minecraft.client.gui.GuiGraphicsExtractor;
- //?} else {
-/*import net.minecraft.client.gui.GuiGraphics;
-*///?}
+/*import net.minecraft.client.gui.GuiGraphicsExtractor;
+ *///?} else {
+import net.minecraft.client.gui.GuiGraphics;
+//?}
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -42,13 +42,13 @@ public class VaultFilterScreen extends AbstractContainerScreen<VaultFilterMenu> 
     }
 
     //? if >=26.1 {
-    @Override
+    /*@Override
     public void extractBackground(@Nonnull GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(g, mouseX, mouseY, partialTick);
-    //?} else {
-    /*@Override
+    *///?} else {
+    @Override
     protected void renderBg(@Nonnull GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-    *///?}
+    //?}
         int x0 = this.leftPos, y0 = this.topPos;
         int x1 = x0 + WIDTH, y1 = y0 + HEIGHT;
 
@@ -64,10 +64,10 @@ public class VaultFilterScreen extends AbstractContainerScreen<VaultFilterMenu> 
     }
 
     //? if >=26.1 {
-    private void drawSlot(GuiGraphicsExtractor g, int sx, int sy) {
-    //?} else {
-    /*private void drawSlot(GuiGraphics g, int sx, int sy) {
-     *///?}
+    /*private void drawSlot(GuiGraphicsExtractor g, int sx, int sy) {
+    *///?} else {
+    private void drawSlot(GuiGraphics g, int sx, int sy) {
+     //?}
         g.fill(sx,     sy,     sx + 18, sy + 1,  COLOR_SLOT_SHADOW);
         g.fill(sx,     sy,     sx + 1,  sy + 18, COLOR_SLOT_SHADOW);
         g.fill(sx,     sy + 17, sx + 18, sy + 18, COLOR_SLOT_LIGHT);
@@ -76,14 +76,14 @@ public class VaultFilterScreen extends AbstractContainerScreen<VaultFilterMenu> 
     }
 
     //? if >=26.1 {
-    @Override
+    /*@Override
     protected void extractLabels(@Nonnull GuiGraphicsExtractor g, int mouseX, int mouseY) {
         super.extractLabels(g, mouseX, mouseY);
     }
-    //?} else {
-    /*@Override
+    *///?} else {
+    @Override
     protected void renderLabels(@Nonnull GuiGraphics g, int mouseX, int mouseY) {
         super.renderLabels(g, mouseX, mouseY);
     }
-    *///?}
+    //?}
 }
