@@ -1,9 +1,15 @@
 plugins {
     id("net.neoforged.moddev")
+    id("dev.kikugie.postprocess.jsonlang")
 }
 
 version = "${property("mod.version")}+${sc.current.version}"
 base.archivesName = property("mod.id") as String
+
+jsonlang {
+    languageDirectories = listOf("assets/${property("mod.id")}/lang")
+    prettyPrint = true
+}
 
 val requiredJava = when {
     sc.current.parsed >= "26.1"   -> JavaVersion.VERSION_25
@@ -30,11 +36,13 @@ repositories {
 dependencies {
 }
 
+val modId = property("mod.id") as String
+
 neoForge {
     version = property("deps.neo_loader") as String
 
     mods {
-        register("universal_vault") {
+        register(modId) {
             sourceSet(sourceSets.main.get())
         }
     }
@@ -42,26 +50,26 @@ neoForge {
     runs {
         register("client") {
             client()
-            systemProperty("neoforge.enabledGameTestNamespaces", "universal_vault")
+            systemProperty("neoforge.enabledGameTestNamespaces", modId)
         }
-        register("server") {
-            server()
-            programArgument("--nogui")
-            systemProperty("neoforge.enabledGameTestNamespaces", "universal_vault")
-        }
-        register("gameTestServer") {
-            type = "gameTestServer"
-            systemProperty("neoforge.enabledGameTestNamespaces", "universal_vault")
-        }
-        register("data") {
-            clientData()
-            programArguments.addAll(
-                "--mod", "universal_vault",
-                "--all",
-                "--output", file("src/generated/resources/").absolutePath,
-                "--existing", file("src/main/resources/").absolutePath
-            )
-        }
+//        register("server") {
+//            server()
+//            programArgument("--nogui")
+//            systemProperty("neoforge.enabledGameTestNamespaces", modId)
+//        }
+//        register("gameTestServer") {
+//            type = "gameTestServer"
+//            systemProperty("neoforge.enabledGameTestNamespaces", modId)
+//        }
+//        register("data") {
+//            clientData()
+//            programArguments.addAll(
+//                "--mod", "universal_vault",
+//                "--all",
+//                "--output", file("src/generated/resources/").absolutePath,
+//                "--existing", file("src/main/resources/").absolutePath
+//            )
+//        }
     }
 }
 
@@ -71,15 +79,19 @@ java {
     sourceCompatibility = requiredJava
 
     toolchain {
-        vendor = JvmVendorSpec.ADOPTIUM
+        //vendor = JvmVendorSpec.ADOPTIUM
         languageVersion = JavaLanguageVersion.of(requiredJava.majorVersion)
     }
 }
 
-sourceSets.main.get().resources {
-    srcDir("src/generated/resources")
-    exclude("**/*.bbmodel")
-    exclude("src/generated/**/.cache")
+sourceSets {
+    main {
+        resources {
+            srcDir("src/generated/resources")
+            exclude("**/*.bbmodel")
+            exclude("src/generated/**/.cache")
+        }
+    }
 }
 
 tasks {
@@ -125,3 +137,4 @@ tasks.processResources {
 tasks.matching { it.name == "ideaSyncTask" }.configureEach {
     dependsOn("stonecutterGenerate")
 }
+

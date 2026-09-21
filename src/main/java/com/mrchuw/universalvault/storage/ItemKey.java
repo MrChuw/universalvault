@@ -8,7 +8,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.jspecify.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public record ItemKey(Identifier itemId, DataComponentPatch components) {
 
@@ -28,13 +29,11 @@ public record ItemKey(Identifier itemId, DataComponentPatch components) {
         return new ItemKey(id, stack.getComponentsPatch());
     }
 
-    /** Resolves the backing Item, or null if the mod that registered it is absent. */
     public @Nullable Item resolveItem() {
         Item item = BuiltInRegistries.ITEM.getValue(itemId);
         return (item == Items.AIR) ? null : item;
     }
 
-    /** True while the mod that registered this item is present; false means it is orphaned. */
     public boolean isResolved() {
         return resolveItem() != null;
     }

@@ -5,7 +5,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public record C2SRequestSyncPayload() implements CustomPacketPayload {
     public static final Type<C2SRequestSyncPayload> TYPE = new Type<>(
@@ -18,7 +19,7 @@ public record C2SRequestSyncPayload() implements CustomPacketPayload {
     );
 
     @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
+    public @Nonnull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

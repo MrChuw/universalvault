@@ -7,11 +7,16 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+//? if >=26.1 {
 import net.minecraft.world.inventory.ContainerInput;
+//?} else {
+/*import net.minecraft.world.inventory.ClickType;
+ *///?}
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class VaultFilterMenu extends AbstractContainerMenu {
 
@@ -24,7 +29,6 @@ public class VaultFilterMenu extends AbstractContainerMenu {
     private final VaultIOBlockEntity blockEntity;
     private final VaultFilterContainer filterContainer;
 
-    // Server constructor
     public VaultFilterMenu(int id, Inventory playerInv, VaultIOBlockEntity be) {
         super(ModRegistry.VAULT_FILTER_MENU.get(), id);
         this.blockEntity = be;
@@ -45,7 +49,6 @@ public class VaultFilterMenu extends AbstractContainerMenu {
         }
     }
 
-    // Client constructor
     public VaultFilterMenu(int id, Inventory playerInv, FriendlyByteBuf buf) {
         this(id, playerInv, resolveBlockEntity(playerInv, buf));
     }
@@ -59,8 +62,13 @@ public class VaultFilterMenu extends AbstractContainerMenu {
 
     public VaultIOBlockEntity getBlockEntity() { return blockEntity; }
 
+    //? if >=26.1 {
     @Override
-    public void clicked(int slotId, int button, @NonNull ContainerInput containerInput, @NonNull Player player) {
+    public void clicked(int slotId, int button, @Nonnull ContainerInput containerInput, @Nonnull Player player) {
+    //?} else {
+    /*@Override
+    public void clicked(int slotId, int button, @Nonnull ClickType containerInput, @Nonnull Player player) {
+    *///?}
         if (slotId >= 0 && slotId < FILTER_SLOTS) {
             ItemStack carried = getCarried();
             if (!carried.isEmpty()) {
@@ -75,12 +83,12 @@ public class VaultFilterMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public @NonNull ItemStack quickMoveStack(@NonNull Player player, int index) {
+    public @Nonnull ItemStack quickMoveStack(@Nonnull Player player, int index) {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public boolean stillValid(@NonNull Player player) {
+    public boolean stillValid(@Nonnull Player player) {
         return blockEntity != null
                 && !blockEntity.isRemoved()
                 && player.distanceToSqr(

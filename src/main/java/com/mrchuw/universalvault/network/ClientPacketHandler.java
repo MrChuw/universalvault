@@ -8,10 +8,10 @@ public class ClientPacketHandler {
 
     public static void handleSync(S2CVaultSyncPayload payload) {
         //? if >=26.2 {
-        /*if (Minecraft.getInstance().gui.screen() instanceof VaultScreen screen) {
-        *///?} else {
-        if (Minecraft.getInstance().screen instanceof VaultScreen screen) {
-         //?}
+        if (Minecraft.getInstance().gui.screen() instanceof VaultScreen screen) {
+        //?} else {
+        /*if (Minecraft.getInstance().screen instanceof VaultScreen screen) {
+         *///?}
             screen.onVaultSync(payload);
         }
     }

@@ -13,8 +13,8 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class VaultItemHandler implements ResourceHandler<ItemResource> {
 
@@ -56,7 +56,7 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
     }
 
     @Override
-    public ItemResource getResource(int index) {
+    public @Nonnull ItemResource getResource(int index) {
         if (!automationEnabled()) return ItemResource.EMPTY;
         List<ItemKey> keys = getCurrentKeys();
         if (index < 0 || index >= keys.size()) return ItemResource.EMPTY;
@@ -82,12 +82,12 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
     }
 
     @Override
-    public long getCapacityAsLong(int index, ItemResource resource) {
+    public long getCapacityAsLong(int index, @Nonnull ItemResource resource) {
         return Long.MAX_VALUE;
     }
 
     @Override
-    public boolean isValid(int index, ItemResource resource) {
+    public boolean isValid(int index, @Nullable ItemResource resource) {
         if (!automationEnabled()) return false;
         if (resource == null || resource.isEmpty()) return false;
         ItemStack sample = resource.toStack(1);
@@ -108,14 +108,14 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
     }
 
     @Override
-    public int insert(int index, @NonNull ItemResource resource, int amount, @NonNull TransactionContext transaction) {
+    public int insert(int index, @Nonnull ItemResource resource, int amount, @Nonnull TransactionContext transaction) {
         if (!automationEnabled()) return 0;
         if (!isValid(index, resource)) return 0;
         return insert(resource, amount, transaction);
     }
 
     @Override
-    public int insert(@NonNull ItemResource resource, int amount, @NonNull TransactionContext transaction) {
+    public int insert(@Nonnull ItemResource resource, int amount, @Nonnull TransactionContext transaction) {
         if (!automationEnabled()) return 0;
         VaultStorage storage = getStorage();
         if (storage == null || resource.isEmpty() || amount <= 0) return 0;
@@ -133,7 +133,7 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
     }
 
     @Override
-    public int extract(int index, @NonNull ItemResource resource, int amount, @NonNull TransactionContext transaction) {
+    public int extract(int index, @Nonnull ItemResource resource, int amount, @Nonnull TransactionContext transaction) {
         ItemStack sample = matchingSample(resource, amount);
         if (sample == null) return 0;
 
@@ -144,7 +144,7 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
         if (slotKey == null) return 0;
 
         ItemKey requestedKey = ItemKey.of(sample);
-        if (requestedKey == null || !slotKey.equals(requestedKey)) return 0;
+        if (!slotKey.equals(requestedKey)) return 0;
 
         VaultStorage storage = getStorage();
         if (storage == null) return 0;
@@ -153,7 +153,7 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
     }
 
     @Override
-    public int extract(@NonNull ItemResource resource, int amount, @NonNull TransactionContext transaction) {
+    public int extract(@Nonnull ItemResource resource, int amount, @Nonnull TransactionContext transaction) {
         ItemStack sample = matchingSample(resource, amount);
         if (sample == null) return 0;
 
@@ -166,7 +166,6 @@ public class VaultItemHandler implements ResourceHandler<ItemResource> {
         return extractFromStorage(storage, requestedKey, amount, transaction);
     }
 
-    /** Validates automation/amount/filter preconditions shared by both extract() overloads. */
     private @Nullable ItemStack matchingSample(ItemResource resource, int amount) {
         if (!automationEnabled()) return null;
         if (resource.isEmpty() || amount <= 0) return null;

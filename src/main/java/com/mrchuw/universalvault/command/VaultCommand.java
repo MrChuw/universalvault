@@ -10,10 +10,13 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.permissions.Permissions;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+
+//? if >=1.21.11 {
+import net.minecraft.server.permissions.Permissions;
+//?}
 
 @EventBusSubscriber(modid = UniversalVault.MOD_ID)
 public class VaultCommand {
@@ -25,18 +28,22 @@ public class VaultCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-            Commands.literal("vault")
-                .executes(VaultCommand::openGlobalVault)
-                .then(Commands.literal("global").executes(VaultCommand::openGlobalVault))
-                .then(Commands.literal("personal").executes(VaultCommand::openPersonalVault))
-                .then(
-                    Commands.literal("player")
-                        .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_OWNER))
+                Commands.literal("vault")
+                        .executes(VaultCommand::openGlobalVault)
+                        .then(Commands.literal("global").executes(VaultCommand::openGlobalVault))
+                        .then(Commands.literal("personal").executes(VaultCommand::openPersonalVault))
                         .then(
-                            Commands.argument("target", EntityArgument.player())
-                                    .executes(VaultCommand::openPlayerVault)
+                                Commands.literal("player")
+                                        //? if >=1.21.11 {
+                                        .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_OWNER))
+                                        //?} else {
+                                        /*.requires(s -> s.hasPermission(4))
+                                         *///?}
+                                        .then(
+                                                Commands.argument("target", EntityArgument.player())
+                                                        .executes(VaultCommand::openPlayerVault)
+                                        )
                         )
-                )
         );
     }
 

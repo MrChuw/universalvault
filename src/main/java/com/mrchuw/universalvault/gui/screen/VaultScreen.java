@@ -1,5 +1,6 @@
 package com.mrchuw.universalvault.gui.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mrchuw.universalvault.client.VaultSortMode;
 import com.mrchuw.universalvault.config.UniversalVaultClientConfig;
 import com.mrchuw.universalvault.config.UniversalVaultConfig;
@@ -8,12 +9,26 @@ import com.mrchuw.universalvault.network.payload.C2SRequestSyncPayload;
 import com.mrchuw.universalvault.network.payload.C2SVaultActionPayload;
 import com.mrchuw.universalvault.network.payload.S2CVaultSyncPayload;
 import com.mrchuw.universalvault.storage.ItemKey;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import net.minecraft.client.Minecraft;
+//? if >=26.1 {
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+  //?} else {
+/*import net.minecraft.client.gui.GuiGraphics;
+*///?}
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -24,11 +39,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import org.jspecify.annotations.NonNull;
-import org.lwjgl.glfw.GLFW;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
@@ -56,7 +66,6 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     private static final int SORT_BTN_H = 12;
     private static final int SORT_BTN_RIGHT_MARGIN = 10;
 
-    // Colors (always prefixed with 0xFF for full alpha)
     private static final int COLOR_BG = 0xFFC6C6C6;
     private static final int COLOR_BORDER_DARK = 0xFF373737;
     private static final int COLOR_BORDER_LIGHT = 0xFFFFFFFF;
@@ -68,15 +77,12 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     private static final int COLOR_BTN_BG_HOVER = 0xFFB8B8B8;
     private static final int COLOR_BTN_TEXT = 0xFF202020;
 
-
-    // Dynamic (computed from window size)
-    private int guiHeight;
+    private int guiHeight = MIN_GUI_HEIGHT;
     private int gridRows;
     private int gridHeight;
     private int invTopY;
     private int hotbarY;
 
-    // State
     private boolean draggingScrollbar = false;
     private VaultSortMode sortMode = VaultSortMode.COUNT_DESC;
 
@@ -96,12 +102,22 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     private long lastSearchTime = 0;
 
     private record FilterableItemData(
-            ItemKey key, long count, String displayName,
-            String modId, Set<Identifier> tags, List<Component> tooltip) {
-    }
+            ItemKey key,
+            long count,
+            String displayName,
+            String modId,
+            Set<Identifier> tags,
+            List<Component> tooltip
+    ) {}
 
     public VaultScreen(VaultMenu menu, Inventory playerInventory, Component title) {
+        //? if >=26.1 {
         super(menu, playerInventory, title, GUI_WIDTH, initialGuiHeight());
+        //?} else {
+        /*super(menu, playerInventory, title);
+        this.imageWidth = GUI_WIDTH;
+        this.imageHeight = initialGuiHeight();
+        *///?}
     }
 
     private static int initialGuiHeight() {
@@ -122,9 +138,14 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
     @Override
     protected void init() {
-        // Read sort mode from client config (persisted across sessions)
         this.sortMode = UniversalVaultClientConfig.CONFIG.sortMode.get();
         computeLayout();
+
+        //? if <26.1 {
+        /*this.imageWidth = GUI_WIDTH;
+        this.imageHeight = this.guiHeight;
+        *///?}
+
         super.init();
 
         this.leftPos = (this.width - GUI_WIDTH) / 2;
@@ -139,8 +160,12 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
         this.searchBox = new EditBox(
                 this.font,
-                this.leftPos + 87, this.topPos + 6, 80, 14,
-                Component.translatable("gui.universal_vault.search_hint"));
+                this.leftPos + 87,
+                this.topPos + 6,
+                80,
+                14,
+                Component.translatable("gui.universal_vault.search_hint")
+        );
         this.searchBox.setMaxLength(64);
         this.searchBox.setResponder(q -> {
             int debounce = UniversalVaultConfig.CONFIG.searchDebounceMs.get();
@@ -161,8 +186,24 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     // RENDER
     // -----------------------------------------------------------------
 
+    //? if >=26.1 {
     @Override
-    public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        renderVaultScreen(graphics, mouseX, mouseY, partialTick);
+    }
+     //?} else {
+    /*@Override
+    public void render(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderVaultScreen(graphics, mouseX, mouseY, partialTick);
+    }
+
+    *///?}
+
+    //? if >=26.1 {
+    private void renderVaultScreen(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+      //?} else {
+    /*private void renderVaultScreen(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        *///?}
         if (pendingSearch != null) {
             int debounce = UniversalVaultConfig.CONFIG.searchDebounceMs.get();
             if (System.currentTimeMillis() - lastSearchTime >= debounce) {
@@ -180,20 +221,39 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         drawScrollbar(graphics);
         drawSortButton(graphics, mouseX, mouseY);
 
+        //? if >=26.1 {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-
+          //?} else {
+        /*super.render(graphics, mouseX, mouseY, partialTick);
+        *///?}
 
         int idx = getHoveredIndex(mouseX, mouseY);
         if (idx >= 0 && idx < filteredItems.size()) {
             ItemStack stack = filteredItems.get(idx).key().toStack(1);
+            //? if >=26.1 {
             graphics.setTooltipForNextFrame(this.font, stack, mouseX, mouseY);
+              //?} else {
+            /*graphics.setTooltipForNextFrame(
+                    this.font,
+                    stack.getTooltipLines(Item.TooltipContext.EMPTY, Minecraft.getInstance().player, TooltipFlag.NORMAL),
+                    stack.getTooltipImage(),
+                    stack,
+                    mouseX,
+                    mouseY,
+                    (Identifier) stack.get(DataComponents.TOOLTIP_STYLE)
+            );
+            *///?}
         }
     }
 
+    //? if >=26.1 {
     @Override
-    public void extractBackground(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
-
+     //?} else {
+    /*@Override
+    protected void renderBg(@Nonnull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+        *///?}
         int x0 = this.leftPos;
         int y0 = this.topPos;
         int x1 = x0 + GUI_WIDTH;
@@ -227,7 +287,11 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         }
     }
 
+    //? if >=26.1 {
     private void drawSlotBackground(GuiGraphicsExtractor g, int sx, int sy) {
+      //?} else {
+    /*private void drawSlotBackground(GuiGraphics g, int sx, int sy) {
+        *///?}
         g.fill(sx, sy, sx + 18, sy + 1, COLOR_SLOT_SHADOW);
         g.fill(sx, sy, sx + 1, sy + 18, COLOR_SLOT_SHADOW);
         g.fill(sx, sy + 17, sx + 18, sy + 18, COLOR_SLOT_LIGHT);
@@ -235,7 +299,11 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         g.fill(sx + 1, sy + 1, sx + 17, sy + 17, COLOR_SLOT_BG);
     }
 
+    //? if >=26.1 {
     private void drawGrid(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+      //?} else {
+    /*private void drawGrid(GuiGraphics graphics, int mouseX, int mouseY) {
+        *///?}
         int startX = this.leftPos + SLOT_X_OFFSET;
         int startY = this.topPos + GRID_TOP;
         int startIndex = scrollOffset * GRID_COLS;
@@ -255,13 +323,22 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
                 }
 
                 ItemStack stack = data.key().toStack(1);
+                //? if >=26.1 {
                 graphics.item(stack, cellX + 1, cellY + 1);
-                graphics.itemDecorations(this.font, stack, cellX + 1, cellY + 1, formatCount(data.count()));
+            graphics.itemDecorations(this.font, stack, cellX + 1, cellY + 1, formatCount(data.count()));
+             //?} else {
+                /*graphics.renderItem(stack, cellX + 1, cellY + 1);
+                graphics.renderItemDecorations(this.font, stack, cellX + 1, cellY + 1, formatCount(data.count()));
+                *///?}
             }
         }
     }
 
+    //? if >=26.1 {
     private void drawScrollbar(GuiGraphicsExtractor graphics) {
+      //?} else {
+    /*private void drawScrollbar(GuiGraphics graphics) {
+        *///?}
         int totalRows = currentRowCount();
         int maxScroll = Math.max(0, totalRows - this.gridRows);
         if (maxScroll <= 0) return;
@@ -272,16 +349,12 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
         graphics.fill(trackX, trackY, trackX + SCROLLBAR_W, trackY + trackH, 0xFF555555);
 
-        int thumbH = Math.max(10, trackH * this.gridRows / totalRows);
-        int thumbY = trackY + (trackH - thumbH) * scrollOffset / maxScroll;
+        int thumbH = Math.max(10, (trackH * this.gridRows) / totalRows);
+        int thumbY = trackY + ((trackH - thumbH) * scrollOffset) / maxScroll;
         graphics.fill(trackX, thumbY, trackX + SCROLLBAR_W, thumbY + thumbH, 0xFFDDDDDD);
         graphics.fill(trackX, thumbY, trackX + 1, thumbY + thumbH, 0xFFFFFFFF);
         graphics.fill(trackX, thumbY + thumbH - 1, trackX + SCROLLBAR_W, thumbY + thumbH, 0xFF373737);
     }
-
-    // -----------------------------------------------------------------
-    // Sort button
-    // -----------------------------------------------------------------
 
     private int sortBtnX() {
         return this.leftPos + GUI_WIDTH - SORT_BTN_W - SORT_BTN_RIGHT_MARGIN;
@@ -297,7 +370,11 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         return mx >= bx && mx < bx + SORT_BTN_W && my >= by && my < by + SORT_BTN_H;
     }
 
+    //? if >=26.1 {
     private void drawSortButton(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+      //?} else {
+    /*private void drawSortButton(GuiGraphics g, int mouseX, int mouseY) {
+        *///?}
         int bx = sortBtnX();
         int by = sortBtnY();
         boolean hover = isOnSortButton(mouseX, mouseY);
@@ -305,33 +382,47 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         int bg = hover ? COLOR_BTN_BG_HOVER : COLOR_BTN_BG;
         g.fill(bx, by, bx + SORT_BTN_W, by + SORT_BTN_H, bg);
 
-        // Bevel border
         g.fill(bx, by, bx + SORT_BTN_W, by + 1, COLOR_BORDER_LIGHT);
         g.fill(bx, by, bx + 1, by + SORT_BTN_H, COLOR_BORDER_LIGHT);
         g.fill(bx, by + SORT_BTN_H - 1, bx + SORT_BTN_W, by + SORT_BTN_H, COLOR_BORDER_DARK);
         g.fill(bx + SORT_BTN_W - 1, by, bx + SORT_BTN_W, by + SORT_BTN_H, COLOR_BORDER_DARK);
 
-        // Resolved label; falls back to showing the raw key if it doesn't exist
         Component label = Component.translatable(sortMode.langKey);
-
-        // Center horizontally and vertically (text is ~8px tall)
         int textW = this.font.width(label);
         int textX = bx + (SORT_BTN_W - textW) / 2;
         int textY = by + (SORT_BTN_H - 8) / 2 + 1;
 
+        //? if >=26.1 {
         g.text(this.font, label, textX, textY, COLOR_BTN_TEXT, false);
+          //?} else {
+        /*g.drawString(this.font, label, textX, textY, COLOR_BTN_TEXT, false);
+        *///?}
     }
 
+    //? if >=26.1 {
     @Override
-    protected void extractLabels(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    protected void extractLabels(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
 
         Component counter = Component.literal(filteredItems.size() + " / " + allItems.size());
         int textW = this.font.width(counter);
-        int x = (GUI_WIDTH - textW) / 2;             // center horizontally
-        int y = this.guiHeight + 1;                 // 12px above the bottom edge
+        int x = (GUI_WIDTH - textW) / 2;
+        int y = this.guiHeight + 1;
         graphics.text(this.font, counter, x, y, 0xFF606060, false);
     }
+     //?} else {
+    /*@Override
+    protected void renderLabels(@Nonnull GuiGraphics graphics, int mouseX, int mouseY) {
+        super.renderLabels(graphics, mouseX, mouseY);
+
+        Component counter = Component.literal(filteredItems.size() + " / " + allItems.size());
+        int textW = this.font.width(counter);
+        int x = (GUI_WIDTH - textW) / 2;
+        int y = this.guiHeight + 1;
+        graphics.drawString(this.font, counter, x, y, 0xFF606060, false);
+    }
+
+    *///?}
 
     // -----------------------------------------------------------------
     // INPUT
@@ -349,23 +440,24 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         if (isInsideGrid(mx, my)) {
             int totalRows = currentRowCount();
             int maxScroll = Math.max(0, totalRows - this.gridRows);
-            scrollOffset = Math.max(0, Math.min(maxScroll, scrollOffset - (int) Math.signum(sy)));
+            scrollOffset = Math.clamp(scrollOffset - (int) Math.signum(sy), 0, maxScroll);
             return true;
         }
         return super.mouseScrolled(mx, my, sx, sy);
     }
 
     @Override
-    public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(@Nonnull MouseButtonEvent event, boolean doubleClick) {
         double mx = event.x();
         double my = event.y();
         int button = event.button();
+
         boolean shift = event.hasShiftDown();
 
         if (isOnSortButton(mx, my)) {
-            if (button == 0) {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 this.sortMode = this.sortMode.next();
-            } else if (button == 1) {
+            } else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
                 this.sortMode = this.sortMode.previous();
             } else {
                 return true;
@@ -384,26 +476,28 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
         if (isInsideGrid(mx, my)) {
             int idx = getHoveredIndex(mx, my);
-            ItemKey key = (idx >= 0 && idx < filteredItems.size())
-                    ? filteredItems.get(idx).key() : null;
+            ItemKey key = idx >= 0 && idx < filteredItems.size() ? filteredItems.get(idx).key() : null;
 
             ItemStack carried = this.menu.getCarried();
 
             if (!carried.isEmpty()) {
-                C2SVaultActionPayload.ActionType action = (button == 0)
-                        ? C2SVaultActionPayload.ActionType.DEPOSIT_ALL
-                        : C2SVaultActionPayload.ActionType.DEPOSIT_ONE;
+                C2SVaultActionPayload.ActionType action =
+                        button == InputConstants.MOUSE_BUTTON_LEFT
+                                ? C2SVaultActionPayload.ActionType.DEPOSIT_ALL
+                                : C2SVaultActionPayload.ActionType.DEPOSIT_ONE;
                 sendVaultAction(action, key);
             } else if (key != null) {
                 C2SVaultActionPayload.ActionType action;
                 if (shift) {
-                    action = (button == 0)
-                            ? C2SVaultActionPayload.ActionType.QUICK_MOVE
-                            : C2SVaultActionPayload.ActionType.QUICK_MOVE_HALF;
+                    action =
+                            button == InputConstants.MOUSE_BUTTON_LEFT
+                                    ? C2SVaultActionPayload.ActionType.QUICK_MOVE
+                                    : C2SVaultActionPayload.ActionType.QUICK_MOVE_HALF;
                 } else {
-                    action = (button == 0)
-                            ? C2SVaultActionPayload.ActionType.PICKUP_ALL
-                            : C2SVaultActionPayload.ActionType.PICKUP_HALF;
+                    action =
+                            button == InputConstants.MOUSE_BUTTON_LEFT
+                                    ? C2SVaultActionPayload.ActionType.PICKUP_ALL
+                                    : C2SVaultActionPayload.ActionType.PICKUP_HALF;
                 }
                 sendVaultAction(action, key);
             }
@@ -414,7 +508,7 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     @Override
-    public boolean mouseReleased(@NonNull MouseButtonEvent event) {
+    public boolean mouseReleased(@Nonnull MouseButtonEvent event) {
         if (this.draggingScrollbar) {
             this.draggingScrollbar = false;
             return true;
@@ -423,7 +517,7 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     @Override
-    public boolean mouseDragged(@NonNull MouseButtonEvent event, double dragX, double dragY) {
+    public boolean mouseDragged(@Nonnull MouseButtonEvent event, double dragX, double dragY) {
         if (this.draggingScrollbar) {
             updateScrollFromMouse(event.y());
             return true;
@@ -432,9 +526,9 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     @Override
-    public boolean keyPressed(@NonNull KeyEvent event) {
+    public boolean keyPressed(@Nonnull KeyEvent event) {
         applyModifierState(event, true);
-        if (event.key() == GLFW.GLFW_KEY_Q) {
+        if (event.key() == InputConstants.KEY_Q) {
             int idx = getHoveredIndex(this.lastMouseX, this.lastMouseY);
             if (idx >= 0 && idx < filteredItems.size()) {
                 ItemKey key = filteredItems.get(idx).key();
@@ -454,17 +548,19 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     @Override
-    public boolean keyReleased(@NonNull KeyEvent event) {
+    public boolean keyReleased(@Nonnull KeyEvent event) {
         applyModifierState(event, false);
         return super.keyReleased(event);
     }
 
     @Override
     protected boolean hasClickedOutside(double mx, double my, int xo, int yo) {
-        return mx < (double) xo
-                || my < (double) yo
-                || mx >= (double) (xo + GUI_WIDTH)
-                || my >= (double) (yo + this.guiHeight);
+        return (
+                mx < (double) xo ||
+                        my < (double) yo ||
+                        mx >= (double) (xo + GUI_WIDTH) ||
+                        my >= (double) (yo + this.guiHeight)
+        );
     }
 
     // -----------------------------------------------------------------
@@ -486,12 +582,17 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
                 if (modMode) {
                     matches = data.modId().toLowerCase(Locale.ROOT).contains(term);
                 } else if (tagMode) {
-                    matches = data.tags().stream()
+                    matches = data
+                            .tags()
+                            .stream()
                             .anyMatch(t -> t.toString().toLowerCase(Locale.ROOT).contains(term));
                 } else {
-                    matches = data.displayName().toLowerCase(Locale.ROOT).contains(term)
-                            || data.tooltip().stream()
-                            .anyMatch(c -> c.getString().toLowerCase(Locale.ROOT).contains(term));
+                    matches =
+                            data.displayName().toLowerCase(Locale.ROOT).contains(term) ||
+                                    data
+                                            .tooltip()
+                                            .stream()
+                                            .anyMatch(c -> c.getString().toLowerCase(Locale.ROOT).contains(term));
                 }
                 if (matches) filteredItems.add(data);
             }
@@ -503,7 +604,7 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
             scrollOffset = 0;
         } else {
             int maxScroll = Math.max(0, currentRowCount() - this.gridRows);
-            scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
+            scrollOffset = Math.clamp(scrollOffset, 0, maxScroll);
         }
     }
 
@@ -515,10 +616,8 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         switch (sortMode) {
             case COUNT_DESC -> filteredItems.sort((a, b) -> Long.compare(b.count(), a.count()));
             case COUNT_ASC -> filteredItems.sort(Comparator.comparingLong(FilterableItemData::count));
-            case NAME_ASC -> filteredItems.sort((a, b) ->
-                    a.displayName().compareToIgnoreCase(b.displayName()));
-            case NAME_DESC -> filteredItems.sort((a, b) ->
-                    b.displayName().compareToIgnoreCase(a.displayName()));
+            case NAME_ASC -> filteredItems.sort((a, b) -> a.displayName().compareToIgnoreCase(b.displayName()));
+            case NAME_DESC -> filteredItems.sort((a, b) -> b.displayName().compareToIgnoreCase(a.displayName()));
             case MOD -> filteredItems.sort((a, b) -> {
                 int c = a.modId().compareToIgnoreCase(b.modId());
                 if (c != 0) return c;
@@ -544,15 +643,20 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
             String modId = regKey.getNamespace();
 
             Item item = key.resolveItem();
-            Set<Identifier> tags = (item == null)
-                    ? Set.of()
-                    : BuiltInRegistries.ITEM.wrapAsHolder(item).tags()
-                    .map(TagKey::location).collect(Collectors.toSet());
+            Set<Identifier> tags =
+                    item == null
+                            ? Set.of()
+                            : BuiltInRegistries.ITEM.wrapAsHolder(item)
+                            .tags()
+                            .map(TagKey::location)
+                            .collect(Collectors.toSet());
 
             List<Component> tooltip = stack.getTooltipLines(
-                    Item.TooltipContext.EMPTY, client.player, TooltipFlag.NORMAL);
-            this.allItems.add(new FilterableItemData(
-                    key, entry.count(), displayName, modId, tags, tooltip));
+                    Item.TooltipContext.EMPTY,
+                    client.player,
+                    TooltipFlag.NORMAL
+            );
+            this.allItems.add(new FilterableItemData(key, entry.count(), displayName, modId, tags, tooltip));
         }
 
         if (isFrozen(this.lastMouseX, this.lastMouseY)) {
@@ -570,7 +674,6 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     private void updateVisibleCountsInPlace() {
         if (filteredItems.isEmpty()) return;
 
-        // Quick lookup: key -> new count, from the already-rebuilt allItems
         Map<ItemKey, Long> newCounts = new HashMap<>();
         for (FilterableItemData d : allItems) {
             newCounts.put(d.key(), d.count());
@@ -581,15 +684,24 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
             Long newCount = newCounts.get(old.key());
 
             if (newCount == null) {
-                // Item no longer in the vault — zero it out visually, keep its position
                 if (old.count() != 0) {
-                    filteredItems.set(i, new FilterableItemData(
-                            old.key(), 0L, old.displayName(), old.modId(), old.tags(), old.tooltip()));
+                    filteredItems.set(
+                            i,
+                            new FilterableItemData(old.key(), 0L, old.displayName(), old.modId(), old.tags(), old.tooltip())
+                    );
                 }
             } else if (newCount != old.count()) {
-                // Same item, new count — build a new record keeping every other field
-                filteredItems.set(i, new FilterableItemData(
-                        old.key(), newCount, old.displayName(), old.modId(), old.tags(), old.tooltip()));
+                filteredItems.set(
+                        i,
+                        new FilterableItemData(
+                                old.key(),
+                                newCount,
+                                old.displayName(),
+                                old.modId(),
+                                old.tags(),
+                                old.tooltip()
+                        )
+                );
             }
         }
     }
@@ -612,8 +724,8 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     private String formatCount(long count) {
-        if (count >= 1_000_000) return (count / 1_000_000) + "M";
-        if (count >= 1_000) return (count / 1_000) + "k";
+        if (count >= 1_000_000) return count / 1_000_000 + "M";
+        if (count >= 1_000) return count / 1_000 + "k";
         return String.valueOf(count);
     }
 
@@ -624,8 +736,7 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
         int trackX = this.leftPos + SCROLLBAR_X;
         int trackY = this.topPos + GRID_TOP;
-        return mx >= trackX && mx < trackX + SCROLLBAR_W
-                && my >= trackY && my < trackY + this.gridHeight;
+        return mx >= trackX && mx < trackX + SCROLLBAR_W && my >= trackY && my < trackY + this.gridHeight;
     }
 
     private void updateScrollFromMouse(double my) {
@@ -635,11 +746,11 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
         int trackY = this.topPos + GRID_TOP;
         int trackH = this.gridHeight;
-        int thumbH = Math.max(10, trackH * this.gridRows / totalRows);
+        int thumbH = Math.max(10, (trackH * this.gridRows) / totalRows);
 
         double localY = my - trackY - thumbH / 2.0;
         double maxThumbY = trackH - thumbH;
-        double thumbY = Math.max(0, Math.min(maxThumbY, localY));
+        double thumbY = Math.clamp(localY, 0, maxThumbY);
 
         double ratio = maxThumbY <= 0 ? 0 : thumbY / maxThumbY;
         this.scrollOffset = (int) Math.round(ratio * maxScroll);

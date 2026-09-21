@@ -7,10 +7,25 @@ mod.group = "com.mrchuw.universalvault"
 mod.version = "1.0.0"
 mod.license = "MIT"
 
+["1.21.10"]
+mod.mc_compat = "[1.21.10]"
+mod.mc_releases = ["1.21.10"]
+deps.neo_loader = "21.10.64"
+
 ["1.21.11"]
 mod.mc_compat = "[1.21.11]"
 mod.mc_releases = ["1.21.11"]
 deps.neo_loader = "21.11.45"
+
+["26.1"]
+mod.mc_compat = "[26.1]"
+mod.mc_releases = ["26.1"]
+deps.neo_loader = "26.1.0.19-beta"
+
+["26.1.1"]
+mod.mc_compat = "[26.1.1]"
+mod.mc_releases = ["26.1.1"]
+deps.neo_loader = "26.1.1.15-beta"
 
 ["26.1.2"]
 mod.mc_compat = "[26.1.2]"
@@ -18,6 +33,11 @@ mod.mc_releases = ["26.1.2"]
 deps.neo_loader = "26.1.2.109"
 
 ["26.2"]
-mod.mc_compat = "[26.2, 26.3)"
+mod.mc_compat = "[26.2]"
 mod.mc_releases = ["26.2"]
 deps.neo_loader = "26.2.0.88"
+
+["26.3"]
+mod.mc_compat = "[26.3]"
+mod.mc_releases = ["26.2"]
+deps.neo_loader = "26.3.0.0-beta"

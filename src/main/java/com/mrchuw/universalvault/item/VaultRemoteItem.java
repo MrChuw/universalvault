@@ -11,7 +11,7 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
 
 public class VaultRemoteItem extends Item {
 
@@ -20,7 +20,7 @@ public class VaultRemoteItem extends Item {
     }
 
     @Override
-    public @NonNull InteractionResult use(@NonNull Level level, @NonNull Player player, @NonNull InteractionHand hand) {
+    public @Nonnull InteractionResult use(@Nonnull Level level, @Nonnull Player player, @Nonnull InteractionHand hand) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             boolean global = player.isShiftKeyDown();
             UUID target = global ? UniversalVault.GLOBAL_VAULT_UUID : serverPlayer.getUUID();

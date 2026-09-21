@@ -9,7 +9,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public record S2CVaultSyncPayload(List<Entry> entries) implements CustomPacketPayload {
     public static final Type<S2CVaultSyncPayload> TYPE = new Type<>(
@@ -32,7 +33,7 @@ public record S2CVaultSyncPayload(List<Entry> entries) implements CustomPacketPa
     );
 
     @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
+    public @Nonnull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

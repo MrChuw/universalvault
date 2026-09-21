@@ -1,14 +1,17 @@
 package com.mrchuw.universalvault.block;
 
-import com.mojang.serialization.MapCodec;
+
 import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.VaultIOData;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -20,44 +23,51 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
+//? if <=26.2 {
+/*import net.minecraft.world.level.block.RenderShape;
+import com.mojang.serialization.MapCodec;
+*///?}
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 public class VaultIOBlock extends BaseEntityBlock {
 
-    public static final MapCodec<VaultIOBlock> CODEC = simpleCodec(VaultIOBlock::new);
+    //? if <=26.2 {
+    /*public static final MapCodec<VaultIOBlock> CODEC = simpleCodec(VaultIOBlock::new);
+
+    *///?}
 
     public VaultIOBlock(Properties properties) {
         super(properties);
     }
 
-    @Override
-    protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
+    //? if <=26.2 {
+    /*@Override
+    protected @Nonnull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
-    public @NonNull RenderShape getRenderShape(@NonNull BlockState state) {
+    public @Nonnull RenderShape getRenderShape(@Nonnull BlockState state) {
         return RenderShape.MODEL;
     }
 
+    *///?}
+
     @Nullable
     @Override
-    public BlockEntity newBlockEntity(@NonNull BlockPos pos, @NonNull BlockState state) {
+    public BlockEntity newBlockEntity(@Nonnull BlockPos pos, @Nonnull BlockState state) {
         return new VaultIOBlockEntity(pos, state);
     }
 
     @Override
     public void setPlacedBy(
-            @NonNull Level level,
-            @NonNull BlockPos pos,
-            @NonNull BlockState state,
+            @Nonnull Level level,
+            @Nonnull BlockPos pos,
+            @Nonnull BlockState state,
             @Nullable LivingEntity placer,
-            @NonNull ItemStack stack
+            @Nonnull ItemStack stack
     ) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.isClientSide()) return;
@@ -78,36 +88,48 @@ public class VaultIOBlock extends BaseEntityBlock {
 
     @Override
     public void playerDestroy(
-            @NonNull Level level,
-            @NonNull Player player,
-            @NonNull BlockPos pos,
-            @NonNull BlockState state,
+            //? if <=26.2 {
+            /*@Nonnull Level level,
+            @Nonnull Player player,
+            *///?} else {
+            @Nonnull ServerLevel level,
+            @Nonnull ServerPlayer player,
+             //?}
+            @Nonnull BlockPos pos,
+            @Nonnull BlockState state,
             @Nullable BlockEntity blockEntity,
-            @NonNull ItemStack tool
+            @Nonnull ItemStack tool
     ) {
         player.awardStat(Stats.BLOCK_MINED.get(this));
         player.causeFoodExhaustion(0.005F);
+        //? if <=26.2 {
+        /*if (level.isClientSide()) return;
+        *///?}
+        dropWithEmbeddedData(level, pos, blockEntity);
+    }
 
-        if (level.isClientSide()) return;
-
-        // Custom drop carrying the embedded data — replaces the loot table's default drop
+    private void dropWithEmbeddedData(Level level, BlockPos pos, @Nullable BlockEntity blockEntity) {
+        // Custom drop carrying the embedded data
         ItemStack drop = new ItemStack(this);
         if (blockEntity instanceof VaultIOBlockEntity be) {
             List<ItemStack> filters = new ArrayList<>();
             for (int i = 0; i < VaultIOBlockEntity.FILTER_SLOTS; i++) {
                 filters.add(be.getFilter(i).copy());
             }
-            drop.set(ModRegistry.VAULT_IO_DATA.get(),
-                    new VaultIOData(be.getTargetVaultUUID(), filters));
+            drop.set(ModRegistry.VAULT_IO_DATA.get(), new VaultIOData(be.getTargetVaultUUID(), filters));
         }
         Block.popResource(level, pos, drop);
     }
 
     @Override
-    protected @NonNull InteractionResult useItemOn(
-            @NonNull ItemStack stack, @NonNull BlockState state, @NonNull Level level,
-            @NonNull BlockPos pos, @NonNull Player player, @NonNull InteractionHand hand,
-            @NonNull BlockHitResult hit
+    protected @Nonnull InteractionResult useItemOn(
+            @Nonnull ItemStack stack,
+            @Nonnull BlockState state,
+            @Nonnull Level level,
+            @Nonnull BlockPos pos,
+            @Nonnull Player player,
+            @Nonnull InteractionHand hand,
+            @Nonnull BlockHitResult hit
     ) {
         if (!(level.getBlockEntity(pos) instanceof VaultIOBlockEntity ioBe)) {
             return InteractionResult.PASS;

@@ -9,7 +9,9 @@ displayName = "${name}"
 version = "${version}"
 authors = "MrChuw"
 description = "Global and personal vaults with I/O, commands and keybinds."
+iconFile = "assets/universal_vault/icon.png"
 logoFile = "assets/universal_vault/icon.png"
+
 
 [[mixins]]
 config = "universal_vault.mixins.json"
@@ -17,7 +19,7 @@ config = "universal_vault.mixins.json"
 [[dependencies.${id}]]
 modId = "neoforge"
 type = "required"
-versionRange = "[26.1,)"
+versionRange = "[1.21.10,26.3.7-beta)"
 ordering = "NONE"
 side = "BOTH"
 

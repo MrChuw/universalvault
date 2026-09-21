@@ -35,14 +35,12 @@ public class VaultStorage {
 
         int countToInsert = stack.getCount();
 
-        // Limit: distinct item types
         int maxSlots = UniversalVaultConfig.CONFIG.maxSlots.get();
         if (maxSlots > 0 && !items.containsKey(key) && items.size() >= maxSlots) {
             debug("insert rejected: maxSlots ({}) reached", maxSlots);
             return 0;
         }
 
-        // Limit: per item type
         long maxPerSlot = UniversalVaultConfig.CONFIG.maxPerSlot.get();
         if (maxPerSlot > 0) {
             long current = items.getOrDefault(key, 0L);
@@ -54,7 +52,6 @@ public class VaultStorage {
             countToInsert = (int) Math.min(countToInsert, space);
         }
 
-        // Limit: total items
         long maxTotalItems = UniversalVaultConfig.CONFIG.maxTotalItems.get();
         if (maxTotalItems > 0) {
             long total = 0;

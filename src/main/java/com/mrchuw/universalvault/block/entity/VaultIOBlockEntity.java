@@ -18,7 +18,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class VaultIOBlockEntity extends BlockEntity {
 
@@ -71,14 +72,14 @@ public class VaultIOBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(@NonNull ValueOutput output) {
+    protected void saveAdditional(@Nonnull ValueOutput output) {
         super.saveAdditional(output);
         output.store("TargetVault", UUIDUtil.CODEC, this.targetVaultUUID);
         ContainerHelper.saveAllItems(output, this.filters);
     }
 
     @Override
-    protected void loadAdditional(@NonNull ValueInput input) {
+    protected void loadAdditional(@Nonnull ValueInput input) {
         super.loadAdditional(input);
         input.read("TargetVault", UUIDUtil.CODEC).ifPresent(uuid -> this.targetVaultUUID = uuid);
         ContainerHelper.loadAllItems(input, this.filters);
@@ -107,10 +108,6 @@ public class VaultIOBlockEntity extends BlockEntity {
         return false;
     }
 
-    /**
-     * Applies the filter rule according to the configured mode.
-     * If no filter is configured, everything passes.
-     */
     public boolean matchesFilter(ItemStack stack) {
         if (stack.isEmpty()) return false;
         if (!hasAnyFilter()) return true;

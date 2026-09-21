@@ -1,6 +1,5 @@
 package com.mrchuw.universalvault;
 
-import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.config.UniversalVaultConfig;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
 import com.mrchuw.universalvault.integration.VaultItemHandler;

@@ -9,8 +9,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public record C2SVaultActionPayload(
         ActionType actionType,
@@ -51,9 +51,11 @@ public record C2SVaultActionPayload(
             C2SVaultActionPayload::new
     );
 
+    private static final ActionType[] ACTION_TYPES = ActionType.values();
+
     public C2SVaultActionPayload(RegistryFriendlyByteBuf buf) {
         this(
-                buf.readEnum(ActionType.class),
+                buf.readById(id -> ACTION_TYPES[id]),
                 OPTIONAL_ITEM_KEY_CODEC.decode(buf).orElse(null),
                 buf.readVarInt(),
                 buf.readVarInt()
@@ -61,14 +63,14 @@ public record C2SVaultActionPayload(
     }
 
     public void write(RegistryFriendlyByteBuf buf) {
-        buf.writeEnum(actionType);
+        buf.writeById(ActionType::ordinal, actionType);
         OPTIONAL_ITEM_KEY_CODEC.encode(buf, Optional.ofNullable(targetKey));
         buf.writeVarInt(amount);
         buf.writeVarInt(slotIndex);
     }
 
     @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
+    public @Nonnull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

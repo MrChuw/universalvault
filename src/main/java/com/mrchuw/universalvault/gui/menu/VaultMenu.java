@@ -27,7 +27,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class VaultMenu extends AbstractContainerMenu {
 
@@ -47,7 +48,6 @@ public class VaultMenu extends AbstractContainerMenu {
     private final UUID targetVaultUUID;
     private static final Map<UUID, List<ServerPlayer>> VIEWERS = new HashMap<>();
 
-    /** Vaults awaiting a sync when syncOnEveryChange=false. */
     private static final Set<UUID> PENDING_SYNC = ConcurrentHashMap.newKeySet();
     private static int syncCooldown = 0;
 
@@ -114,7 +114,7 @@ public class VaultMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public void addSlotListener(ContainerListener listener) {
+    public void addSlotListener(@Nonnull ContainerListener listener) {
         super.addSlotListener(listener);
         if (listener instanceof ServerPlayer sp) {
             VIEWERS.computeIfAbsent(targetVaultUUID, k -> new ArrayList<>()).add(sp);
@@ -122,7 +122,7 @@ public class VaultMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public void removeSlotListener(ContainerListener listener) {
+    public void removeSlotListener(@Nonnull ContainerListener listener) {
         super.removeSlotListener(listener);
         if (listener instanceof ServerPlayer sp) {
             removeViewer(targetVaultUUID, sp);
@@ -147,18 +147,18 @@ public class VaultMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public void removed(Player player) {
+    public void removed(@Nonnull Player player) {
         super.removed(player);
         unregisterViewer();
     }
 
     @Override
-    public boolean stillValid(@NonNull Player player) {
+    public boolean stillValid(@Nonnull Player player) {
         return player.isAlive() && !player.isRemoved();
     }
 
     @Override
-    public @NonNull ItemStack quickMoveStack(@NonNull Player player, int index) {
+    public @Nonnull ItemStack quickMoveStack(@Nonnull Player player, int index) {
         Slot slot = this.slots.get(index);
         if (slot == null || !slot.hasItem()) return ItemStack.EMPTY;
 

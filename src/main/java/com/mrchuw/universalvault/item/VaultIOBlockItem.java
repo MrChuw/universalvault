@@ -14,7 +14,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class VaultIOBlockItem extends BlockItem {
 
@@ -23,34 +24,37 @@ public class VaultIOBlockItem extends BlockItem {
     }
 
     @Override
-    public @NonNull InteractionResult use(@NonNull Level level, @NonNull Player player,
-                                          @NonNull InteractionHand hand) {
+    public @Nonnull InteractionResult use(@Nonnull Level level, @Nonnull Player player,
+                                          @Nonnull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        // Shift + right-click in the air = clear configuration
         if (player.isShiftKeyDown() && stack.has(ModRegistry.VAULT_IO_DATA.get())) {
             if (!level.isClientSide()) {
                 stack.remove(ModRegistry.VAULT_IO_DATA.get());
-                player.sendOverlayMessage(
-                        Component.translatable("gui.universal_vault.cleared"));
+
+                //? if >=26.1 {
+                player.sendOverlayMessage(Component.translatable("gui.universal_vault.cleared"));
+                 //?} else {
+                /*player.displayClientMessage(Component.translatable("gui.universal_vault.cleared"), true);
+                *///?}
             }
             return InteractionResult.SUCCESS;
         }
 
-        // No shift: let BlockItem try to place the block
         return super.use(level, player, hand);
     }
 
     @Override
-    public void appendHoverText(@NonNull ItemStack stack,
-                                Item.TooltipContext context,
-                                @NonNull TooltipDisplay display,
-                                @NonNull Consumer<Component> tooltip,
-                                @NonNull TooltipFlag flag) {
+    public void appendHoverText(@Nonnull ItemStack stack,
+                                @Nonnull Item.TooltipContext context,
+                                @Nonnull TooltipDisplay display,
+                                @Nonnull Consumer<Component> tooltip,
+                                @Nonnull TooltipFlag flag) {
         VaultIOData data = stack.get(ModRegistry.VAULT_IO_DATA.get());
         if (data != null) {
             tooltip.accept(Component.translatable("item.universal_vault.vault_io.configured"));
             tooltip.accept(Component.translatable("item.universal_vault.vault_io.configured.hint"));
         }
+        super.appendHoverText(stack, context, display, tooltip, flag);
     }
 }

@@ -24,5 +24,7 @@
   "item.universal_vault.vault_io": "Vault I/O",
   "item.universal_vault.vault_remote": "Vault Remote",
   "item.universal_vault.vault_io.configured": "Configured",
-  "item.universal_vault.vault_io.configured.hint": "Shift+Right-click to clear"
+  "item.universal_vault.vault_io.configured.hint": "Shift+Right-click to clear",
+
+  "itemGroup.universal_vault": "Universal Vault"
 }

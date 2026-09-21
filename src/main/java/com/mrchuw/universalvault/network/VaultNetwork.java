@@ -13,12 +13,18 @@ import com.mrchuw.universalvault.storage.VaultStorage;
 import java.util.UUID;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+//? if >=1.21.11 {
 import net.minecraft.server.permissions.Permissions;
+ //?}
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
+//? if >=26.3 {
+import net.minecraft.util.Prediction;
+//?}
 
 public class VaultNetwork {
 
@@ -61,7 +67,12 @@ public class VaultNetwork {
             if (target.equals(UniversalVault.GLOBAL_VAULT_UUID)) {
                 VaultMenuHelper.openVault(player, target, Component.translatable("gui.universal_vault.global_title"));
             } else if (
-                    target.equals(player.getUUID()) || player.permissions().hasPermission(Permissions.COMMANDS_OWNER)
+                    target.equals(player.getUUID())
+                            //? if >=1.21.11 {
+                            || player.permissions().hasPermission(Permissions.COMMANDS_OWNER)
+                             //?} else {
+                            /*|| player.hasPermissions(4)
+                *///?}
             ) {
                 VaultMenuHelper.openVault(player, target, Component.translatable("gui.universal_vault.personal_title"));
             }
@@ -155,7 +166,11 @@ public class VaultNetwork {
             case DROP_ONE -> {
                 if (key == null) return;
                 ItemStack extracted = storage.extract(key, 1, false);
-                if (!extracted.isEmpty()) player.drop(extracted, false);
+                //? if <=26.2 {
+                /*if (!extracted.isEmpty()) player.drop(extracted, false);
+                 *///?} else {
+                if (!extracted.isEmpty()) player.drop(extracted, false, Prediction.PREDICTED);
+                //?}
             }
             case DROP_STACK -> {
                 if (key == null) return;
@@ -164,7 +179,11 @@ public class VaultNetwork {
                 int maxStack = maxStackFor(key);
                 int toDrop = (int) Math.min(available, maxStack);
                 ItemStack extracted = storage.extract(key, toDrop, false);
-                if (!extracted.isEmpty()) player.drop(extracted, false);
+                //? if <=26.2 {
+                /*if (!extracted.isEmpty()) player.drop(extracted, false);
+                 *///?} else {
+                if (!extracted.isEmpty()) player.drop(extracted, false, Prediction.PREDICTED);
+                //?}
             }
             case DEPOSIT_HELD -> {
                 ItemStack carried = player.containerMenu.getCarried();

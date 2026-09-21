@@ -4,6 +4,8 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class GhostSlot extends Slot {
 
@@ -11,6 +13,6 @@ public class GhostSlot extends Slot {
         super(container, index, x, y);
     }
 
-    @Override public boolean mayPlace(ItemStack stack) { return false; }
-    @Override public boolean mayPickup(Player player) { return false; }
+    @Override public boolean mayPlace(@Nonnull ItemStack stack) { return false; }
+    @Override public boolean mayPickup(@Nonnull Player player) { return false; }
 }
