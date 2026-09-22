@@ -37,14 +37,10 @@ Fabric Loader `0.19.5+` on every supported Minecraft version.
 ## Building
 
 ```
-./gradlew build
+./gradlew buildAndCollect
 ```
 
 ### Usage
 - Use `"Set active project to ..."` Gradle tasks to update the Minecraft version
   available in `src/` classes.
 - Use `buildAndCollect` Gradle task to store mod releases in `build/libs/`.
-- Enable `mod-publish-plugin` in `stonecutter.gradle.kts` and `build.gradle.kts`
-  and the corresponding code blocks to publish releases to Modrinth and Curseforge.
-- Enable `maven-publish` in `build.gradle.kts` and the corresponding code block
-  to publish releases to a personal maven repository.
