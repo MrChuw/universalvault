@@ -13,7 +13,6 @@ stonecutter active "26.3-neoforge"
 stonecutter parameters {
     val loader = node.metadata.project.substringAfterLast('-')
 
-    // "unobfuscate" ativa os dois loaders: o jar é universal
     constants["fabric"]      = (loader == "fabric"      || loader == "unobfuscate")
     constants["neoforge"]    = (loader == "neoforge"    || loader == "unobfuscate")
     constants["unobfuscate"] = (loader == "unobfuscate")

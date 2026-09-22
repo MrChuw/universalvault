@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.gui.menu.VaultMenu;
+import com.mrchuw.universalvault.gui.menu.VaultMenu;
 import com.mrchuw.universalvault.network.ClientPacketHandler;
 import com.mrchuw.universalvault.network.ServerHandlers;
 import com.mrchuw.universalvault.network.payload.C2SRequestSyncPayload;
@@ -77,9 +77,7 @@ public final class NeoforgeNetwork {
     }
 
     private static void handleSync(S2CVaultSyncPayload payload, IPayloadContext ctx) {
-        // No NeoForge, playToClient handlers já rodam na thread do cliente
-        // quando usamos enqueueWork; o ClientPacketHandler cuida do resto.
         ctx.enqueueWork(() -> ClientPacketHandler.handleSync(payload));
     }
 }
-*///?}
+//?}

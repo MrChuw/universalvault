@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.config.VaultConfig;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -30,7 +30,6 @@ public class NeoforgeEntrypoint {
     public NeoforgeEntrypoint(IEventBus modBus, ModContainer container) {
         UniversalVault.init();
 
-        // Registra a config no Platform
         NeoforgePlatformImpl impl = (NeoforgePlatformImpl) com.mrchuw.universalvault.Platform.INSTANCE;
         impl.setConfig(SERVER_CONFIG);
         impl.setClientConfig(CLIENT_CONFIG);
@@ -43,4 +42,4 @@ public class NeoforgeEntrypoint {
         container.registerConfig(ModConfig.Type.CLIENT, CLIENT_SPEC);
     }
 }
-*///?}
+//?}

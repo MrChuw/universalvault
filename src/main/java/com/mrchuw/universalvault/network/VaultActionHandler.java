@@ -96,10 +96,10 @@ public final class VaultActionHandler {
                 if (key == null) return;
                 ItemStack extracted = storage.extract(key, 1, false);
                 //? if <=26.2 {
-                if (!extracted.isEmpty()) player.drop(extracted, false);
-                 //?} else {
-                /*if (!extracted.isEmpty()) player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
-                *///?}
+                /*if (!extracted.isEmpty()) player.drop(extracted, false);
+                 *///?} else {
+                if (!extracted.isEmpty()) player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
+                //?}
             }
             case DROP_STACK -> {
                 if (key == null) return;
@@ -109,10 +109,10 @@ public final class VaultActionHandler {
                 int toDrop = (int) Math.min(available, maxStack);
                 ItemStack extracted = storage.extract(key, toDrop, false);
                 //? if <=26.2 {
-                if (!extracted.isEmpty()) player.drop(extracted, false);
-                 //?} else {
-                /*if (!extracted.isEmpty()) player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
-                *///?}
+                /*if (!extracted.isEmpty()) player.drop(extracted, false);
+                 *///?} else {
+                if (!extracted.isEmpty()) player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
+                //?}
             }
             case DEPOSIT_HELD -> {
                 ItemStack carried = player.containerMenu.getCarried();

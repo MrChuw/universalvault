@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.block.VaultIOBlock;
 import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
@@ -88,7 +88,6 @@ public class NeoforgeRegistry {
         DATA_COMPONENTS.register(modBus);
         TABS.register(modBus);
 
-        // DeferredHolder implements Supplier<T>, so pass the holder directly without calling .get()
         ModRegistry.VAULT_MENU = (Supplier) vaultMenu;
         ModRegistry.VAULT_FILTER_MENU = (Supplier) vaultFilterMenu;
         ModRegistry.VAULT_IO = (Supplier) vaultIo;
@@ -98,4 +97,4 @@ public class NeoforgeRegistry {
         ModRegistry.VAULT_IO_DATA = (Supplier) vaultIoData;
     }
 }
-*///?}
+//?}

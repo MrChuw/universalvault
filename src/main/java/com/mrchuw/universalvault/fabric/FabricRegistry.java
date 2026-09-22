@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.fabric;
 
 //? fabric {
-import com.mrchuw.universalvault.UniversalVault;
+/*import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.block.VaultIOBlock;
 import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
@@ -13,16 +13,16 @@ import com.mrchuw.universalvault.storage.VaultIOData;
 import java.util.Set;
 
 //? if <26.2 {
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-//?}
+/^import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+^///?}
 
 //? if <26.1 {
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+/^import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-//?} else {
-/*import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
+^///?} else {
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
-*///?}
+//?}
 
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.Registry;
@@ -59,7 +59,7 @@ public class FabricRegistry {
                 new VaultIOBlock(blockProperties)
         );
         //?} else {
-        /*BlockBehaviour.Properties blockProperties = BlockBehaviour.Properties.of()
+        /^BlockBehaviour.Properties blockProperties = BlockBehaviour.Properties.of()
                 .strength(5.0F, 6.0F)
                 .requiresCorrectToolForDrops();
         Block vaultIo = Registry.register(
@@ -67,7 +67,7 @@ public class FabricRegistry {
                 vaultIoId,
                 new VaultIOBlock(blockProperties)
         );
-        *///?}
+        ^///?}
 
         ModRegistry.VAULT_IO = () -> vaultIo;
 
@@ -83,12 +83,12 @@ public class FabricRegistry {
         VaultRemoteItem vaultRemote = new VaultRemoteItem(vaultRemoteProps);
         Registry.register(BuiltInRegistries.ITEM, vaultRemoteItemKey, vaultRemote);
         //?} else {
-        /*VaultIOBlockItem vaultIoItem = new VaultIOBlockItem(vaultIo, new Item.Properties());
+        /^VaultIOBlockItem vaultIoItem = new VaultIOBlockItem(vaultIo, new Item.Properties());
         Registry.register(BuiltInRegistries.ITEM, vaultIoId, vaultIoItem);
 
         VaultRemoteItem vaultRemote = new VaultRemoteItem(new Item.Properties().stacksTo(1));
         Registry.register(BuiltInRegistries.ITEM, vaultRemoteId, vaultRemote);
-        *///?}
+        ^///?}
 
         ModRegistry.VAULT_IO_BLOCK_ITEM = () -> vaultIoItem;
         ModRegistry.VAULT_REMOTE = () -> vaultRemote;
@@ -98,10 +98,10 @@ public class FabricRegistry {
                 BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 vaultIoId,
                 //? if <26.2 {
-                FabricBlockEntityTypeBuilder.create(VaultIOBlockEntity::new, vaultIo).build()
-                //?} else {
-                /*new BlockEntityType<>(VaultIOBlockEntity::new, Set.of(vaultIo))
-                 *///?}
+                /^FabricBlockEntityTypeBuilder.create(VaultIOBlockEntity::new, vaultIo).build()
+                ^///?} else {
+                new BlockEntityType<>(VaultIOBlockEntity::new, Set.of(vaultIo))
+                 //?}
         );
         ModRegistry.VAULT_IO_BLOCK_ENTITY = () -> beType;
 
@@ -121,16 +121,16 @@ public class FabricRegistry {
                 BuiltInRegistries.MENU,
                 Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_menu"),
                 //? if <26.1 {
-                new ExtendedScreenHandlerType<>(
+                /^new ExtendedScreenHandlerType<>(
                         VaultMenu::new,
                         net.minecraft.core.UUIDUtil.STREAM_CODEC
                 )
-                //?} else {
-                /*new ExtendedMenuType<>(
+                ^///?} else {
+                new ExtendedMenuType<>(
                         VaultMenu::new,
                         net.minecraft.core.UUIDUtil.STREAM_CODEC
                 )
-                *///?}
+                //?}
         );
         ModRegistry.VAULT_MENU = () -> vaultMenu;
 
@@ -138,31 +138,31 @@ public class FabricRegistry {
                 BuiltInRegistries.MENU,
                 Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_filter_menu"),
                 //? if <26.1 {
-                new ExtendedScreenHandlerType<>(
+                /^new ExtendedScreenHandlerType<>(
                         VaultFilterMenu::new,
                         net.minecraft.network.codec.StreamCodec.of(
                                 (buf, pos) -> buf.writeBlockPos(pos),
                                 buf -> buf.readBlockPos()
                         )
                 )
-                //?} else {
-                /*new ExtendedMenuType<>(
+                ^///?} else {
+                new ExtendedMenuType<>(
                         VaultFilterMenu::new,
                         net.minecraft.network.codec.StreamCodec.of(
                                 (buf, pos) -> buf.writeBlockPos(pos),
                                 buf -> buf.readBlockPos()
                         )
                 )
-                *///?}
+                //?}
         );
         ModRegistry.VAULT_FILTER_MENU = () -> vaultFilterMenu;
 
         // ---- Creative tab ----------------------------------------------------
         //? if <26.1 {
-        CreativeModeTab tab = FabricItemGroup.builder()
-                //?} else {
-                /*CreativeModeTab tab = FabricCreativeModeTab.builder()
-                 *///?}
+        /^CreativeModeTab tab = FabricItemGroup.builder()
+                ^///?} else {
+                CreativeModeTab tab = FabricCreativeModeTab.builder()
+                 //?}
                 .title(Component.translatable("itemGroup.universal_vault"))
                 .icon(() -> new ItemStack(vaultRemote))
                 .displayItems((params, output) -> {
@@ -183,4 +183,4 @@ public class FabricRegistry {
         );
     }
 }
-//?}
+*///?}

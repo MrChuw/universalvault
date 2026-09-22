@@ -116,9 +116,8 @@ tasks.register("generateGradleIdeaRuns") {
     group = "ide"
     description = "Generates IntelliJ run configurations targeting Gradle tasks"
 
-    // Capture values at configuration time
     val targetDir = rootProject.layout.projectDirectory.dir(".run")
-    val subprojectPath = project.path // e.g. ":26.3-neoforge"
+    val subprojectPath = project.path
     val configName = "NeoForge ${project.name}: runClient"
     val fileName = "NeoForge_${project.name}_runClient_Gradle.run.xml"
 
@@ -157,7 +156,6 @@ tasks.register("generateGradleIdeaRuns") {
     }
 }
 
-// Optional: Automatically run this task during IntelliJ sync
 tasks.matching { it.name == "ideaSyncTask" }.configureEach {
     dependsOn("generateGradleIdeaRuns")
 }

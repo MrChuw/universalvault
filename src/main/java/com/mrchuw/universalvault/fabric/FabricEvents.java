@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.fabric;
 
 //? fabric {
-import com.mrchuw.universalvault.UniversalVault;
+/*import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.storage.VaultManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -22,4 +22,4 @@ public class FabricEvents {
         });
     }
 }
-//?}
+*///?}

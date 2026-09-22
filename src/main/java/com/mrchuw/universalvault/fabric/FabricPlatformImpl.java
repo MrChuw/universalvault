@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.fabric;
 
 //? fabric {
-import com.mrchuw.universalvault.Platform;
+/*import com.mrchuw.universalvault.Platform;
 import com.mrchuw.universalvault.config.VaultClientConfig;
 import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
@@ -20,11 +20,11 @@ import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
 import net.minecraft.core.BlockPos;
 
 //? if <26.1 {
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+/^import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.network.FriendlyByteBuf;
-//?} else {
-/*import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
-*///?}
+^///?} else {
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+//?}
 
 public class FabricPlatformImpl implements Platform {
 
@@ -49,7 +49,7 @@ public class FabricPlatformImpl implements Platform {
     @Override
     public void openVaultMenu(ServerPlayer player, UUID targetVaultUuid, Component title) {
         //? if <26.1 {
-        player.openMenu(new ExtendedScreenHandlerFactory<UUID>() {
+        /^player.openMenu(new ExtendedScreenHandlerFactory<UUID>() {
             @Override
             public UUID getScreenOpeningData(ServerPlayer player) {
                 return targetVaultUuid;
@@ -65,8 +65,8 @@ public class FabricPlatformImpl implements Platform {
                 return new VaultMenu(syncId, inv, targetVaultUuid);
             }
         });
-        //?} else {
-        /*player.openMenu(new ExtendedMenuProvider<UUID>() {
+        ^///?} else {
+        player.openMenu(new ExtendedMenuProvider<UUID>() {
             @Override
             public UUID getScreenOpeningData(ServerPlayer player) {
                 return targetVaultUuid;
@@ -82,13 +82,13 @@ public class FabricPlatformImpl implements Platform {
                 return new VaultMenu(syncId, inv, targetVaultUuid);
             }
         });
-        *///?}
+        //?}
     }
 
     @Override
     public void openVaultFilterMenu(ServerPlayer player, VaultIOBlockEntity ioBe, BlockPos pos, Component title) {
         //? if <26.1 {
-        player.openMenu(new ExtendedScreenHandlerFactory<BlockPos>() {
+        /^player.openMenu(new ExtendedScreenHandlerFactory<BlockPos>() {
             @Override
             public BlockPos getScreenOpeningData(ServerPlayer player) {
                 return pos;
@@ -104,8 +104,8 @@ public class FabricPlatformImpl implements Platform {
                 return new VaultFilterMenu(syncId, inv, ioBe);
             }
         });
-        //?} else {
-        /*player.openMenu(new ExtendedMenuProvider<BlockPos>() {
+        ^///?} else {
+        player.openMenu(new ExtendedMenuProvider<BlockPos>() {
             @Override
             public BlockPos getScreenOpeningData(ServerPlayer player) {
                 return pos;
@@ -121,7 +121,7 @@ public class FabricPlatformImpl implements Platform {
                 return new VaultFilterMenu(syncId, inv, ioBe);
             }
         });
-        *///?}
+        //?}
     }
 }
-//?}
+*///?}

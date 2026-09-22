@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.fabric;
 
 //? fabric {
-import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
+/*import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.storage.ItemKey;
 import com.mrchuw.universalvault.storage.VaultStorage;
@@ -22,7 +22,6 @@ public class FabricItemHandler implements Storage<ItemVariant> {
 
     private final VaultIOBlockEntity blockEntity;
 
-    // Snapshot por transação (permite rollback correto e múltiplos insert/extract no mesmo tx)
     private final Map<TransactionContext, Map<ItemKey, Long>> snapshots = new WeakHashMap<>();
 
     public FabricItemHandler(VaultIOBlockEntity blockEntity) {
@@ -147,4 +146,4 @@ public class FabricItemHandler implements Storage<ItemVariant> {
         }
     }
 }
-//?}
+*///?}

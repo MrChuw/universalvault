@@ -12,13 +12,11 @@ import net.minecraft.server.level.ServerPlayer;
 
 public interface Platform {
 
-    //? if unobfuscate {
-    /*Platform INSTANCE = createUniversal();
-     *///?} else if fabric {
-    Platform INSTANCE = new com.mrchuw.universalvault.fabric.FabricPlatformImpl();
-    //?} else if neoforge {
-    /*Platform INSTANCE = new com.mrchuw.universalvault.neoforge.NeoforgePlatformImpl();
-     *///?}
+    //? if fabric {
+    /*Platform INSTANCE = new com.mrchuw.universalvault.fabric.FabricPlatformImpl();
+    *///?} else if neoforge {
+    Platform INSTANCE = new com.mrchuw.universalvault.neoforge.NeoforgePlatformImpl();
+     //?}
 
     boolean isModLoaded(String modid);
     String loader();

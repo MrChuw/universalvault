@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.client.VaultSortMode;
+import com.mrchuw.universalvault.client.VaultSortMode;
 import com.mrchuw.universalvault.config.VaultClientConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -17,4 +17,4 @@ public class NeoforgeClientConfig implements VaultClientConfig {
     @Override public VaultSortMode sortMode() { return sortMode.get(); }
     @Override public void setSortMode(VaultSortMode mode) { sortMode.set(mode); }
 }
-*///?}
+//?}

@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
+import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.storage.ItemKey;
 import com.mrchuw.universalvault.storage.VaultStorage;
@@ -207,4 +207,4 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
         }
     }
 }
-*///?}
+//?}

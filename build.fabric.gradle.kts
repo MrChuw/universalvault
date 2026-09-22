@@ -49,11 +49,8 @@ val possibleAwLocations = listOf(
 )
 val rawAwFile = possibleAwLocations.firstOrNull { it.exists() }
 val generatedAwPath = layout.buildDirectory.file("generated/accesswidener/$modId.accesswidener")
-
-// Disambiguated variable name to prevent circular evaluation
 val resolvedNamespace = if (sc.current.parsed >= "26.1") "official" else "named"
 
-// Write at configuration time so Loom finds the file before setup/mapping starts
 if (rawAwFile != null && rawAwFile.exists()) {
     val outFile = generatedAwPath.get().asFile
     val lines = rawAwFile.readLines()
@@ -71,7 +68,6 @@ if (rawAwFile != null && rawAwFile.exists()) {
     }
 }
 
-// Configuration-cache safe task definition
 abstract class GenerateAccessWidenerTask : DefaultTask() {
     @get:InputFile
     @get:Optional
@@ -108,7 +104,6 @@ val generateAccessWidener = tasks.register<GenerateAccessWidenerTask>("generateA
     if (rawAwFile != null) {
         templateFile.set(rawAwFile)
     }
-    // Explicitly pass resolvedNamespace to avoid self-referencing
     targetNamespace.set(resolvedNamespace)
     outputFile.set(generatedAwPath)
 }

@@ -207,9 +207,6 @@ public class VaultMenu extends AbstractContainerMenu {
         }
     }
 
-    // -----------------------------------------------------------------
-    // Batched sync (used when syncOnEveryChange=false)
-    // -----------------------------------------------------------------
 
     public static void markPendingSync(UUID vaultUUID) {
         PENDING_SYNC.add(vaultUUID);

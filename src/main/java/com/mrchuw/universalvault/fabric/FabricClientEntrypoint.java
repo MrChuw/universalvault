@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.fabric;
 
 //? fabric {
-import net.fabricmc.api.ClientModInitializer;
+/*import net.fabricmc.api.ClientModInitializer;
 
 public class FabricClientEntrypoint implements ClientModInitializer {
     @Override
@@ -10,4 +10,4 @@ public class FabricClientEntrypoint implements ClientModInitializer {
         FabricNetwork.registerClient();
     }
 }
-//?}
+*///?}

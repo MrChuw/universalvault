@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.fabric;
 
 //? fabric {
-import com.google.gson.Gson;
+/*import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.config.VaultConfig;
@@ -19,7 +19,6 @@ public class FabricConfig implements VaultConfig {
             .getConfigDir()
             .resolve(UniversalVault.MOD_ID + ".json");
 
-    // Internal data POJO with default values matching NeoForge
     public static class Data {
         public boolean debugLogging = false;
         public int maxSlots = 0;
@@ -53,7 +52,6 @@ public class FabricConfig implements VaultConfig {
             }
         }
 
-        // If file does not exist or failed to load, write default JSON to disk
         Data defaultData = new Data();
         save(defaultData);
         return defaultData;
@@ -70,7 +68,6 @@ public class FabricConfig implements VaultConfig {
         }
     }
 
-    // VaultConfig overrides reading from the POJO
     @Override public boolean debugLogging() { return data.debugLogging; }
     @Override public int maxSlots() { return data.maxSlots; }
     @Override public long maxPerSlot() { return data.maxPerSlot; }
@@ -84,4 +81,4 @@ public class FabricConfig implements VaultConfig {
     @Override public boolean autoCreatePersonalVault() { return data.autoCreatePersonalVault; }
     @Override public boolean announceTargetOnCycle() { return data.announceTargetOnCycle; }
 }
-//?}
+*///?}

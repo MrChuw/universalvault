@@ -21,10 +21,10 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import net.minecraft.client.Minecraft;
 //? if >=26.1 {
-/*import net.minecraft.client.gui.GuiGraphicsExtractor;
-  *///?} else {
-import net.minecraft.client.gui.GuiGraphics;
-//?}
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+  //?} else {
+/*import net.minecraft.client.gui.GuiGraphics;
+*///?}
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -113,12 +113,12 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
     public VaultScreen(VaultMenu menu, Inventory playerInventory, Component title) {
         //? if >=26.1 {
-        /*super(menu, playerInventory, title, GUI_WIDTH, initialGuiHeight());
-        *///?} else {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, title, GUI_WIDTH, initialGuiHeight());
+        //?} else {
+        /*super(menu, playerInventory, title);
         this.imageWidth = GUI_WIDTH;
         this.imageHeight = initialGuiHeight();
-        //?}
+        *///?}
     }
 
     private static int initialGuiHeight() {
@@ -143,9 +143,9 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         computeLayout();
 
         //? if <26.1 {
-        this.imageWidth = GUI_WIDTH;
+        /*this.imageWidth = GUI_WIDTH;
         this.imageHeight = this.guiHeight;
-        //?}
+        *///?}
 
         super.init();
 
@@ -188,23 +188,23 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     // -----------------------------------------------------------------
 
     //? if >=26.1 {
-    /*@Override
+    @Override
     public void extractRenderState(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         renderVaultScreen(graphics, mouseX, mouseY, partialTick);
     }
-     *///?} else {
-    @Override
+     //?} else {
+    /*@Override
     public void render(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderVaultScreen(graphics, mouseX, mouseY, partialTick);
     }
 
-    //?}
+    *///?}
 
     //? if >=26.1 {
-    /*private void renderVaultScreen(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-      *///?} else {
-    private void renderVaultScreen(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        //?}
+    private void renderVaultScreen(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+      //?} else {
+    /*private void renderVaultScreen(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        *///?}
         if (pendingSearch != null) {
             int debounce = VaultConfig.get().searchDebounceMs();
             if (System.currentTimeMillis() - lastSearchTime >= debounce) {
@@ -223,19 +223,19 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         drawSortButton(graphics, mouseX, mouseY);
 
         //? if >=26.1 {
-        /*super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-          *///?} else {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        //?}
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+          //?} else {
+        /*super.render(graphics, mouseX, mouseY, partialTick);
+        *///?}
 
         int idx = getHoveredIndex(mouseX, mouseY);
         if (idx >= 0 && idx < filteredItems.size()) {
             ItemStack stack = filteredItems.get(idx).key().toStack(1);
             //? if >=26.1 {
-            /*graphics.setTooltipForNextFrame(this.font, stack, mouseX, mouseY);
-             *///?} else if fabric {
             graphics.setTooltipForNextFrame(this.font, stack, mouseX, mouseY);
-            //?} else {
+             //?} else if fabric {
+            /*graphics.setTooltipForNextFrame(this.font, stack, mouseX, mouseY);
+            *///?} else {
             /*graphics.setTooltipForNextFrame(
                     this.font,
                     stack.getTooltipLines(Item.TooltipContext.EMPTY, Minecraft.getInstance().player, TooltipFlag.NORMAL),
@@ -250,13 +250,13 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     //? if >=26.1 {
-    /*@Override
+    @Override
     public void extractBackground(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
-     *///?} else {
-    @Override
+     //?} else {
+    /*@Override
     protected void renderBg(@Nonnull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        //?}
+        *///?}
         int x0 = this.leftPos;
         int y0 = this.topPos;
         int x1 = x0 + GUI_WIDTH;
@@ -291,10 +291,10 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     //? if >=26.1 {
-    /*private void drawSlotBackground(GuiGraphicsExtractor g, int sx, int sy) {
-      *///?} else {
-    private void drawSlotBackground(GuiGraphics g, int sx, int sy) {
-        //?}
+    private void drawSlotBackground(GuiGraphicsExtractor g, int sx, int sy) {
+      //?} else {
+    /*private void drawSlotBackground(GuiGraphics g, int sx, int sy) {
+        *///?}
         g.fill(sx, sy, sx + 18, sy + 1, COLOR_SLOT_SHADOW);
         g.fill(sx, sy, sx + 1, sy + 18, COLOR_SLOT_SHADOW);
         g.fill(sx, sy + 17, sx + 18, sy + 18, COLOR_SLOT_LIGHT);
@@ -303,10 +303,10 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     //? if >=26.1 {
-    /*private void drawGrid(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-      *///?} else {
-    private void drawGrid(GuiGraphics graphics, int mouseX, int mouseY) {
-        //?}
+    private void drawGrid(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+      //?} else {
+    /*private void drawGrid(GuiGraphics graphics, int mouseX, int mouseY) {
+        *///?}
         int startX = this.leftPos + SLOT_X_OFFSET;
         int startY = this.topPos + GRID_TOP;
         int startIndex = scrollOffset * GRID_COLS;
@@ -327,21 +327,21 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
 
                 ItemStack stack = data.key().toStack(1);
                 //? if >=26.1 {
-                /*graphics.item(stack, cellX + 1, cellY + 1);
+                graphics.item(stack, cellX + 1, cellY + 1);
             graphics.itemDecorations(this.font, stack, cellX + 1, cellY + 1, formatCount(data.count()));
-             *///?} else {
-                graphics.renderItem(stack, cellX + 1, cellY + 1);
+             //?} else {
+                /*graphics.renderItem(stack, cellX + 1, cellY + 1);
                 graphics.renderItemDecorations(this.font, stack, cellX + 1, cellY + 1, formatCount(data.count()));
-                //?}
+                *///?}
             }
         }
     }
 
     //? if >=26.1 {
-    /*private void drawScrollbar(GuiGraphicsExtractor graphics) {
-      *///?} else {
-    private void drawScrollbar(GuiGraphics graphics) {
-        //?}
+    private void drawScrollbar(GuiGraphicsExtractor graphics) {
+      //?} else {
+    /*private void drawScrollbar(GuiGraphics graphics) {
+        *///?}
         int totalRows = currentRowCount();
         int maxScroll = Math.max(0, totalRows - this.gridRows);
         if (maxScroll <= 0) return;
@@ -374,10 +374,10 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
     }
 
     //? if >=26.1 {
-    /*private void drawSortButton(GuiGraphicsExtractor g, int mouseX, int mouseY) {
-      *///?} else {
-    private void drawSortButton(GuiGraphics g, int mouseX, int mouseY) {
-        //?}
+    private void drawSortButton(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+      //?} else {
+    /*private void drawSortButton(GuiGraphics g, int mouseX, int mouseY) {
+        *///?}
         int bx = sortBtnX();
         int by = sortBtnY();
         boolean hover = isOnSortButton(mouseX, mouseY);
@@ -396,14 +396,14 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         int textY = by + (SORT_BTN_H - 8) / 2 + 1;
 
         //? if >=26.1 {
-        /*g.text(this.font, label, textX, textY, COLOR_BTN_TEXT, false);
-          *///?} else {
-        g.drawString(this.font, label, textX, textY, COLOR_BTN_TEXT, false);
-        //?}
+        g.text(this.font, label, textX, textY, COLOR_BTN_TEXT, false);
+          //?} else {
+        /*g.drawString(this.font, label, textX, textY, COLOR_BTN_TEXT, false);
+        *///?}
     }
 
     //? if >=26.1 {
-    /*@Override
+    @Override
     protected void extractLabels(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
 
@@ -413,8 +413,8 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         int y = this.guiHeight + 1;
         graphics.text(this.font, counter, x, y, 0xFF606060, false);
     }
-     *///?} else {
-    @Override
+     //?} else {
+    /*@Override
     protected void renderLabels(@Nonnull GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
 
@@ -425,7 +425,7 @@ public class VaultScreen extends AbstractContainerScreen<VaultMenu> {
         graphics.drawString(this.font, counter, x, y, 0xFF606060, false);
     }
 
-    //?}
+    *///?}
 
     // -----------------------------------------------------------------
     // INPUT

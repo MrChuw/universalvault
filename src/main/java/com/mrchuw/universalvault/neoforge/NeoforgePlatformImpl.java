@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.Platform;
+import com.mrchuw.universalvault.Platform;
 import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.config.VaultClientConfig;
 import com.mrchuw.universalvault.config.VaultConfig;
@@ -62,4 +62,4 @@ public class NeoforgePlatformImpl implements Platform {
         );
     }
 }
-*///?}
+//?}

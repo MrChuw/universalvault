@@ -10,7 +10,7 @@ public class UniversalVault {
     public static final java.util.UUID GLOBAL_VAULT_UUID = new java.util.UUID(0L, 0L);
 
     public static final String VERSION   = /*$ mod_version*/ "1.0.0";
-    public static final String MINECRAFT = /*$ minecraft*/   "1.21.11";
+    public static final String MINECRAFT = /*$ minecraft*/   "26.3";
 
     public static void init() {
         LOGGER.info("Initializing {} {} for Minecraft {} on {}",

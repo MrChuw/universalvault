@@ -25,9 +25,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 //? if <=26.2 {
-import net.minecraft.world.level.block.RenderShape;
+/*import net.minecraft.world.level.block.RenderShape;
 import com.mojang.serialization.MapCodec;
-//?}
+*///?}
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -35,16 +35,16 @@ import net.minecraft.world.phys.BlockHitResult;
 public class VaultIOBlock extends BaseEntityBlock {
 
     //? if <=26.2 {
-    public static final MapCodec<VaultIOBlock> CODEC = simpleCodec(VaultIOBlock::new);
+    /*public static final MapCodec<VaultIOBlock> CODEC = simpleCodec(VaultIOBlock::new);
 
-    //?}
+     *///?}
 
     public VaultIOBlock(Properties properties) {
         super(properties);
     }
 
     //? if <=26.2 {
-    @Override
+    /*@Override
     protected @Nonnull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
@@ -54,7 +54,7 @@ public class VaultIOBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
-    //?}
+    *///?}
 
     @Nullable
     @Override
@@ -90,12 +90,12 @@ public class VaultIOBlock extends BaseEntityBlock {
     @Override
     public void playerDestroy(
             //? if <=26.2 {
-            @Nonnull Level level,
+            /*@Nonnull Level level,
             @Nonnull Player player,
-            //?} else {
-            /*@Nonnull ServerLevel level,
+            *///?} else {
+            @Nonnull ServerLevel level,
             @Nonnull ServerPlayer player,
-             *///?}
+            //?}
             @Nonnull BlockPos pos,
             @Nonnull BlockState state,
             @Nullable BlockEntity blockEntity,
@@ -104,8 +104,8 @@ public class VaultIOBlock extends BaseEntityBlock {
         player.awardStat(Stats.BLOCK_MINED.get(this));
         player.causeFoodExhaustion(0.005F);
         //? if <=26.2 {
-        if (level.isClientSide()) return;
-        //?}
+        /*if (level.isClientSide()) return;
+         *///?}
         dropWithEmbeddedData(level, pos, blockEntity);
     }
 

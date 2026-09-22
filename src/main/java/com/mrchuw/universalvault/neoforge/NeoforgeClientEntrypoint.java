@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.client.VaultKeyBindings;
 import com.mrchuw.universalvault.gui.screen.VaultFilterScreen;
 import com.mrchuw.universalvault.gui.screen.VaultScreen;
@@ -33,4 +33,4 @@ public class NeoforgeClientEntrypoint {
         VaultKeyBindings.handleClientTick();
     }
 }
-*///?}
+//?}

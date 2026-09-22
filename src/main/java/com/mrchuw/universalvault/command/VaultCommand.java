@@ -6,7 +6,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.block.VaultIOBlock;
 import com.mrchuw.universalvault.gui.VaultMenuHelper;
-import com.mrchuw.universalvault.registry.ModRegistry;import net.minecraft.commands.CommandSourceStack;
+import com.mrchuw.universalvault.registry.ModRegistry;
+import com.mrchuw.universalvault.util.DevEnvironment;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
@@ -34,36 +36,40 @@ import java.util.List;
 public class VaultCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(
-                Commands.literal("vault")
-                        .executes(VaultCommand::openGlobalVault)
-                        .then(Commands.literal("global").executes(VaultCommand::openGlobalVault))
-                        .then(Commands.literal("personal").executes(VaultCommand::openPersonalVault))
-                        .then(
-                                Commands.literal("player")
-                                        //? if >=1.21.11 {
-                                        .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_OWNER))
-                                        //?} else {
-                                        /*.requires(s -> s.hasPermission(4))
-                                         *///?}
-                                        .then(
-                                                Commands.argument("target", EntityArgument.player())
-                                                        .executes(VaultCommand::openPlayerVault)
-                                        )
-                        )
-                        .then(
-                                Commands.literal("debug_chests")
-                                        //? if >=1.21.11 {
-                                        .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_OWNER))
-                                        //?} else {
-                                        /*.requires(s -> s.hasPermission(4))
-                                         *///?}
-                                        .executes(ctx -> spawnDebugChests(ctx, "default"))
-                                        .then(Commands.literal("full").executes(ctx -> spawnDebugChests(ctx, "full")))
-                                        .then(Commands.literal("random").executes(ctx -> spawnDebugChests(ctx, "random")))
-                                        .then(Commands.literal("almost_broken").executes(ctx -> spawnDebugChests(ctx, "almost_broken")))
-                        )
-        );
+        var vaultNode = Commands.literal("vault")
+                .executes(VaultCommand::openGlobalVault)
+                .then(Commands.literal("global").executes(VaultCommand::openGlobalVault))
+                .then(Commands.literal("personal").executes(VaultCommand::openPersonalVault))
+                .then(
+                        Commands.literal("player")
+                                //? if >=1.21.11 {
+                                .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_OWNER))
+                                //?} else {
+                                /*.requires(s -> s.hasPermission(4))
+                                 *///?}
+                                .then(
+                                        Commands.argument("target", EntityArgument.player())
+                                                .executes(VaultCommand::openPlayerVault)
+                                )
+                );
+
+        // Registra apenas em ambiente de desenvolvimento (runClient, dev-env, etc.)
+        if (DevEnvironment.isDev()) {
+            vaultNode.then(
+                    Commands.literal("debug_chests")
+                            //? if >=1.21.11 {
+                            .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_OWNER))
+                            //?} else {
+                            /*.requires(s -> s.hasPermission(4))
+                             *///?}
+                            .executes(ctx -> spawnDebugChests(ctx, "default"))
+                            .then(Commands.literal("full").executes(ctx -> spawnDebugChests(ctx, "full")))
+                            .then(Commands.literal("random").executes(ctx -> spawnDebugChests(ctx, "random")))
+                            .then(Commands.literal("almost_broken").executes(ctx -> spawnDebugChests(ctx, "almost_broken")))
+            );
+        }
+
+        dispatcher.register(vaultNode);
     }
 
     private static int spawnDebugChests(CommandContext<CommandSourceStack> ctx, String damageMode) throws CommandSyntaxException {
@@ -85,13 +91,11 @@ public class VaultCommand {
             BlockState customBlockState = ModRegistry.VAULT_IO.get().defaultBlockState();
             level.setBlock(targetPos, customBlockState, Block.UPDATE_ALL);
 
-            // 1. Hopper facing the direction the player is looking
             BlockState hopperState = Blocks.HOPPER.defaultBlockState()
                     .setValue(HopperBlock.FACING, opposite)
                     .setValue(HopperBlock.ENABLED, true);
             level.setBlock(hopperPos, hopperState, Block.UPDATE_ALL);
 
-            // 2. Chest facing the player
             BlockState chestState = Blocks.CHEST.defaultBlockState()
                     .setValue(net.minecraft.world.level.block.ChestBlock.FACING, opposite);
             level.setBlock(chestPos, chestState, Block.UPDATE_ALL);
@@ -112,7 +116,6 @@ public class VaultCommand {
     private static List<List<ItemStack>> generatePresetItems(String damageMode) {
         List<List<ItemStack>> chests = new ArrayList<>();
 
-        // 1. Minérios e Recursos Básicos (x64)
         chests.add(createFullChest(
                 Items.DIAMOND, Items.EMERALD, Items.GOLD_INGOT, Items.IRON_INGOT,
                 Items.COAL, Items.REDSTONE, Items.LAPIS_LAZULI, Items.NETHERITE_INGOT,
@@ -123,7 +126,6 @@ public class VaultCommand {
                 Items.BRICK, Items.FLINT, Items.ARROW
         ));
 
-        // 2. Comidas Básicas (x64)
         chests.add(createFullChest(
                 Items.BREAD, Items.COOKED_BEEF, Items.COOKED_PORKCHOP, Items.COOKED_MUTTON,
                 Items.COOKED_CHICKEN, Items.COOKED_SALMON, Items.COOKED_COD, Items.BAKED_POTATO,
@@ -134,7 +136,6 @@ public class VaultCommand {
                 Items.MUTTON, Items.CHICKEN, Items.ROTTEN_FLESH
         ));
 
-        // 3. Madeiras Básicas (x64)
         chests.add(createFullChest(
                 Items.OAK_LOG, Items.SPRUCE_LOG, Items.BIRCH_LOG, Items.JUNGLE_LOG,
                 Items.ACACIA_LOG, Items.DARK_OAK_LOG, Items.CRIMSON_STEM, Items.WARPED_STEM,
@@ -145,7 +146,6 @@ public class VaultCommand {
                 Items.SCAFFOLDING, Items.TORCH, Items.LANTERN
         ));
 
-        // 4. Pedras e Construção Básica (x64)
         chests.add(createFullChest(
                 Items.STONE, Items.COBBLESTONE, Items.STONE_BRICKS, Items.MOSSY_STONE_BRICKS,
                 Items.CRACKED_STONE_BRICKS, Items.CHISELED_STONE_BRICKS, Items.GRANITE, Items.POLISHED_GRANITE,
@@ -156,7 +156,6 @@ public class VaultCommand {
                 Items.DARK_PRISMARINE, Items.SEA_LANTERN, Items.GLOWSTONE
         ));
 
-        // 5. Blocos Naturais e Terrenos (x64)
         chests.add(createFullChest(
                 Items.DIRT, Items.GRASS_BLOCK, Items.COARSE_DIRT, Items.PODZOL,
                 Items.MYCELIUM, Items.GRAVEL, Items.SAND, Items.RED_SAND,
@@ -167,7 +166,6 @@ public class VaultCommand {
                 Items.TERRACOTTA, Items.SPAWNER, Items.SLIME_SPAWN_EGG
         ));
 
-        // 6. Redstone Clássica (x64)
         chests.add(createFullChest(
                 Items.REDSTONE_TORCH, Items.REPEATER, Items.COMPARATOR, Items.LEVER,
                 Items.STONE_BUTTON, Items.OAK_BUTTON, Items.PISTON, Items.STICKY_PISTON,
@@ -178,7 +176,6 @@ public class VaultCommand {
                 Items.REDSTONE_LAMP, Items.NOTE_BLOCK, Items.TARGET
         ));
 
-        // 7. Blocos Decorativos & Minerais (x64 - seguro para todas as versões)
         chests.add(createFullChest(
                 Items.GLASS, Items.GLASS_PANE, Items.IRON_BARS, Items.IRON_CHAIN,
                 Items.LANTERN, Items.SOUL_LANTERN, Items.CAMPFIRE, Items.SOUL_CAMPFIRE,
@@ -189,7 +186,6 @@ public class VaultCommand {
                 Items.PRISMARINE_BRICKS, Items.DARK_PRISMARINE, Items.BRICKS
         ));
 
-        // 8. Agricultura, Plantas e Mudas (x64)
         chests.add(createFullChest(
                 Items.WHEAT_SEEDS, Items.PUMPKIN_SEEDS, Items.MELON_SEEDS, Items.BEETROOT_SEEDS,
                 Items.SUGAR_CANE, Items.CACTUS, Items.BAMBOO, Items.KELP,
@@ -200,7 +196,6 @@ public class VaultCommand {
                 Items.LILY_PAD, Items.VINE, Items.BONE_MEAL
         ));
 
-        // 9. Armaduras, Ferramentas e Utensílios não-empilháveis
         List<ItemStack> gear = new ArrayList<>();
         Item[] gearItems = {
                 Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS,

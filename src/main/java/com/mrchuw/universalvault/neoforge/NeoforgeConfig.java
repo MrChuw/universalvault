@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.config.VaultConfig;
+import com.mrchuw.universalvault.config.VaultConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class NeoforgeConfig implements VaultConfig {
@@ -53,4 +53,4 @@ public class NeoforgeConfig implements VaultConfig {
     @Override public boolean autoCreatePersonalVault() { return autoCreatePersonalVault.get(); }
     @Override public boolean announceTargetOnCycle() { return announceTargetOnCycle.get(); }
 }
-*///?}
+//?}

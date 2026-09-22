@@ -1,7 +1,7 @@
 package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
-/*import com.mrchuw.universalvault.config.VaultConfig;
+import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import net.neoforged.bus.api.IEventBus;
@@ -46,4 +46,4 @@ public class NeoforgeEvents {
         VaultMenu.processPendingSyncs(event.getServer());
     }
 }
-*///?}
+//?}
