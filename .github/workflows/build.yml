@@ -51,7 +51,7 @@ jobs:
 
           echo "Target resolvido: $TARGET"
 
-          if [ "$TARGET" = "all" ] || [ "$TARGET" = "ccshared" ] || [ "${{ github.ref_type }}" != "tag" ]; then
+          if [ "$TARGET" = "all" ] || [ "$TARGET" = "universalvault" ] || [ "${{ github.ref_type }}" != "tag" ]; then
             echo "Building all Stonecutter versions..."
             ./gradlew buildAndCollect --no-daemon --stacktrace
           else
