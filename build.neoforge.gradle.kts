@@ -50,7 +50,7 @@ neoForge {
             client()
             systemProperty("neoforge.enabledGameTestNamespaces", modId)
         }
-        // register("server") { gameDirectory = file("run/"); server() }
+        // register("server") { gameDirectory = file("run/server"); server() }
     }
 
     mods {
