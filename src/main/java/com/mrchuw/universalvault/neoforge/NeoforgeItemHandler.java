@@ -6,9 +6,11 @@ import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.storage.ItemKey;
 import com.mrchuw.universalvault.storage.VaultStorage;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -19,8 +21,13 @@ import javax.annotation.Nullable;
 
 public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
 
+    private static final Map<VaultStorage, SharedVaultJournal> JOURNALS = new WeakHashMap<>();
+
     private final VaultIOBlockEntity blockEntity;
-    private final VaultJournal journal = new VaultJournal();
+
+    private List<ItemKey> cachedKeys = null;
+    private Map<ItemKey, Long> cachedAmounts = null;
+    private long lastSizeCheckTime = -1;
 
     public NeoforgeItemHandler(VaultIOBlockEntity blockEntity) {
         this.blockEntity = blockEntity;
@@ -30,29 +37,72 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
         return blockEntity.getStorage();
     }
 
+    private SharedVaultJournal getJournal() {
+        VaultStorage storage = getStorage();
+        if (storage == null) return null;
+        synchronized (JOURNALS) {
+            SharedVaultJournal journal = JOURNALS.computeIfAbsent(storage, SharedVaultJournal::new);
+            journal.addListener(blockEntity);
+            return journal;
+        }
+    }
+
     private boolean automationEnabled() {
         return VaultConfig.get().hopperInteraction();
     }
 
-    private List<ItemKey> getCurrentKeys() {
+    private void refreshKeys() {
         VaultStorage storage = getStorage();
-        if (storage == null) return List.of();
+        if (storage == null) {
+            cachedKeys = List.of();
+            cachedAmounts = Map.of();
+            return;
+        }
 
-        List<ItemKey> all = new ArrayList<>(storage.getAllItems().keySet());
-        if (!blockEntity.hasAnyFilter()) return all;
+        Map<ItemKey, Long> allItems = storage.getAllItems();
+        List<ItemKey> all = new ArrayList<>(allItems.keySet());
+        all.sort(Comparator
+                .comparing((ItemKey k) -> k.itemId().toString())
+                .thenComparing(k -> k.components().toString()));
+
+        if (!blockEntity.hasAnyFilter()) {
+            cachedKeys = all;
+            cachedAmounts = new HashMap<>(allItems);
+            return;
+        }
 
         List<ItemKey> filtered = new ArrayList<>();
+        Map<ItemKey, Long> filteredAmounts = new HashMap<>();
         for (ItemKey key : all) {
             ItemStack stack = key.toStack(1);
-            if (stack.isEmpty()) continue;
-            if (blockEntity.matchesFilter(stack)) filtered.add(key);
+            if (!stack.isEmpty() && blockEntity.matchesFilter(stack)) {
+                filtered.add(key);
+                filteredAmounts.put(key, allItems.get(key));
+            }
         }
-        return filtered;
+        cachedKeys = filtered;
+        cachedAmounts = filteredAmounts;
+    }
+
+    private List<ItemKey> getCurrentKeys() {
+        if (cachedKeys == null) {
+            refreshKeys();
+        }
+        return cachedKeys;
     }
 
     @Override
     public int size() {
         if (!automationEnabled()) return 0;
+        long time = -1;
+        if (blockEntity.getLevel() != null) {
+            time = blockEntity.getLevel().getGameTime();
+        }
+        if (time == -1 || time != lastSizeCheckTime) {
+            refreshKeys();
+            lastSizeCheckTime = time;
+        }
+
         return getCurrentKeys().size() + 1;
     }
 
@@ -63,10 +113,10 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
         if (index < 0 || index >= keys.size()) return ItemResource.EMPTY;
         ItemKey key = keys.get(index);
         if (key == null) return ItemResource.EMPTY;
-        VaultStorage storage = getStorage();
-        if (storage == null) return ItemResource.EMPTY;
-        long amount = storage.getAmount(key);
+
+        long amount = cachedAmounts != null ? cachedAmounts.getOrDefault(key, 0L) : 0L;
         if (amount <= 0) return ItemResource.EMPTY;
+
         return ItemResource.of(key.toStack(1));
     }
 
@@ -76,10 +126,8 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
         List<ItemKey> keys = getCurrentKeys();
         if (index < 0 || index >= keys.size()) return 0;
         ItemKey key = keys.get(index);
-        if (key == null) return 0;
-        VaultStorage storage = getStorage();
-        if (storage == null) return 0;
-        return storage.getAmount(key);
+        if (key == null || cachedAmounts == null) return 0;
+        return cachedAmounts.getOrDefault(key, 0L);
     }
 
     @Override
@@ -127,7 +175,10 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
         ItemStack stack = resource.toStack(amount);
         if (stack.isEmpty()) return 0;
 
-        journal.updateSnapshots(transaction);
+        SharedVaultJournal journal = getJournal();
+        if (journal != null) {
+            journal.updateSnapshots(transaction);
+        }
 
         long inserted = storage.insert(stack, false);
         return (int) inserted;
@@ -181,29 +232,72 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
         if (current <= 0) return 0;
 
         int toExtract = (int) Math.min(amount, current);
-        journal.updateSnapshots(transaction);
+
+        SharedVaultJournal journal = getJournal();
+        if (journal != null) {
+            journal.updateSnapshots(transaction);
+        }
 
         ItemStack extracted = storage.extract(key, toExtract, false);
         return extracted.isEmpty() ? 0 : extracted.getCount();
     }
 
-    private class VaultJournal extends SnapshotJournal<Map<ItemKey, Long>> {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof NeoforgeItemHandler other)) return false;
+
+        if (!this.blockEntity.getTargetVaultUUID().equals(other.blockEntity.getTargetVaultUUID())) {
+            return false;
+        }
+
+        for (int i = 0; i < VaultIOBlockEntity.FILTER_SLOTS; i++) {
+            ItemStack thisFilter = this.blockEntity.getFilter(i);
+            ItemStack otherFilter = other.blockEntity.getFilter(i);
+
+            if (thisFilter.isEmpty() != otherFilter.isEmpty()) return false;
+            if (!thisFilter.isEmpty() && !ItemStack.isSameItemSameComponents(thisFilter, otherFilter)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.blockEntity.getTargetVaultUUID().hashCode();
+    }
+
+    private static class SharedVaultJournal extends SnapshotJournal<Map<ItemKey, Long>> {
+        private final VaultStorage storage;
+        private final List<VaultIOBlockEntity> listeners = new ArrayList<>();
+
+        public SharedVaultJournal(VaultStorage storage) {
+            this.storage = storage;
+        }
+
+        public void addListener(VaultIOBlockEntity be) {
+            if (!listeners.contains(be)) {
+                listeners.add(be);
+            }
+        }
+
         @Override
         protected Map<ItemKey, Long> createSnapshot() {
-            VaultStorage storage = getStorage();
-            if (storage == null) return new HashMap<>();
             return new HashMap<>(storage.getAllItems());
         }
 
         @Override
         protected void revertToSnapshot(Map<ItemKey, Long> snapshot) {
-            VaultStorage storage = getStorage();
-            if (storage != null) storage.loadFromMap(snapshot);
+            storage.loadFromMap(snapshot);
         }
 
         @Override
         protected void onRootCommit(Map<ItemKey, Long> originalState) {
-            blockEntity.setChanged();
+            for (VaultIOBlockEntity be : listeners) {
+                be.setChanged();
+            }
         }
     }
 }

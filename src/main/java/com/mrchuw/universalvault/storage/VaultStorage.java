@@ -111,6 +111,7 @@ public class VaultStorage {
     public void loadFromMap(Map<ItemKey, Long> rawData) {
         items.clear();
         items.putAll(rawData);
+        markDirty();
     }
 
     public boolean hasOrphans() {

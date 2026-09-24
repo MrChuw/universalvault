@@ -12,12 +12,7 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 public class FabricItemHandler implements SlottedStorage<ItemVariant> {
 
@@ -86,14 +81,18 @@ public class FabricItemHandler implements SlottedStorage<ItemVariant> {
         VaultStorage s = storage();
         if (s == null || !enabled()) return List.of();
 
+        List<ItemKey> keys = new ArrayList<>(s.getAllItems().keySet());
+        keys.sort(Comparator
+                .comparing((ItemKey k) -> k.itemId().toString())
+                .thenComparing(k -> k.components().toString()));
+
         List<SingleSlotStorage<ItemVariant>> views = new ArrayList<>();
-        for (Map.Entry<ItemKey, Long> e : s.getAllItems().entrySet()) {
-            ItemStack sample = e.getKey().toStack(1);
+        for (ItemKey key : keys) {
+            ItemStack sample = key.toStack(1);
             if (sample.isEmpty()) continue;
             if (!blockEntity.matchesFilter(sample)) continue;
-            views.add(new VaultView(e.getKey()));
+            views.add(new VaultView(key));
         }
-
         views.add(new EmptySlotView());
         return views;
     }
@@ -187,6 +186,33 @@ public class FabricItemHandler implements SlottedStorage<ItemVariant> {
         public long getCapacity() {
             return Long.MAX_VALUE;
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof FabricItemHandler other)) return false;
+
+        if (!this.blockEntity.getTargetVaultUUID().equals(other.blockEntity.getTargetVaultUUID())) {
+            return false;
+        }
+
+        for (int i = 0; i < VaultIOBlockEntity.FILTER_SLOTS; i++) {
+            ItemStack thisFilter = this.blockEntity.getFilter(i);
+            ItemStack otherFilter = other.blockEntity.getFilter(i);
+
+            if (thisFilter.isEmpty() != otherFilter.isEmpty()) return false;
+            if (!thisFilter.isEmpty() && !ItemStack.isSameItemSameComponents(thisFilter, otherFilter)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.blockEntity.getTargetVaultUUID().hashCode();
     }
 
     private class EmptySlotView implements SingleSlotStorage<ItemVariant> {
