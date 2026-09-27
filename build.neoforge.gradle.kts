@@ -156,16 +156,13 @@ tasks.register("generateGradleIdeaRuns") {
     }
 }
 
-tasks.matching { it.name == "ideaSyncTask" }.configureEach {
-    dependsOn("generateGradleIdeaRuns")
-}
-
 tasks.processResources {
     notCompatibleWithConfigurationCache("Uses Stonecutter's version properties")
 }
 
 tasks.matching { it.name == "ideaSyncTask" }.configureEach {
     dependsOn("stonecutterGenerate")
+    dependsOn("generateGradleIdeaRuns")
 }
 
 

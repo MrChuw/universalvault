@@ -99,7 +99,10 @@ public class FabricItemHandler implements SlottedStorage<ItemVariant> {
 
     @Override
     public Iterator<StorageView<ItemVariant>> nonEmptyIterator() {
-        return new ArrayList<StorageView<ItemVariant>>(getSlots()).iterator();
+        return getSlots().stream()
+                .filter(slot -> !slot.isResourceBlank() && slot.getAmount() > 0)
+                .map(slot -> (StorageView<ItemVariant>) slot)
+                .iterator();
     }
 
 

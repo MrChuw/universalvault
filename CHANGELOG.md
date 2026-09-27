@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Fixed hopper crash in fabric server.
+
 ## 1.1.0
 
 - Fixed visual item duplication when interacting with external storage mods (AE2, Tom's Simple Storage).
