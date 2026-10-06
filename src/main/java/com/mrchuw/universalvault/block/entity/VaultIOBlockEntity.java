@@ -1,6 +1,5 @@
 package com.mrchuw.universalvault.block.entity;
 
-import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.VaultManager;
@@ -9,24 +8,21 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class VaultIOBlockEntity extends BlockEntity {
 
     public static final int FILTER_SLOTS = 9;
 
-    private UUID targetVaultUUID = UniversalVault.GLOBAL_VAULT_UUID;
-    private long lastToggleTime = 0;
+    private static final UUID NO_OWNER = new UUID(0L, 0L);
+
+    private UUID ownerUUID = NO_OWNER;
     private final NonNullList<ItemStack> filters =
             NonNullList.withSize(FILTER_SLOTS, ItemStack.EMPTY);
 
@@ -34,53 +30,35 @@ public class VaultIOBlockEntity extends BlockEntity {
         super(ModRegistry.VAULT_IO_BLOCK_ENTITY.get(), pos, state);
     }
 
-    public VaultStorage getStorage() {
-        if (this.level != null && !this.level.isClientSide()) {
-            return VaultManager.getVault(this.level, this.targetVaultUUID);
-        }
-        return null;
-    }
+    public UUID getOwnerUUID() { return ownerUUID; }
 
-    public UUID getTargetVaultUUID() {
-        return targetVaultUUID;
-    }
-
-    public void setTargetVaultUUID(UUID targetVaultUUID) {
-        this.targetVaultUUID = targetVaultUUID;
+    public void setOwnerUUID(UUID uuid) {
+        this.ownerUUID = uuid != null ? uuid : NO_OWNER;
         this.setChangedAndSync();
     }
 
-    public void cycleTarget(Player player) {
-        long now = System.currentTimeMillis();
-        if (now - lastToggleTime < 100) return;
-        lastToggleTime = now;
+    public boolean hasOwner() {
+        return !NO_OWNER.equals(ownerUUID);
+    }
 
-        if (targetVaultUUID.equals(UniversalVault.GLOBAL_VAULT_UUID)) {
-            setTargetVaultUUID(player.getUUID());
-        } else {
-            setTargetVaultUUID(UniversalVault.GLOBAL_VAULT_UUID);
+    public VaultStorage getStorage() {
+        if (this.level != null && !this.level.isClientSide() && hasOwner()) {
+            return VaultManager.getVault(this.level, this.ownerUUID);
         }
-
-        if (player instanceof ServerPlayer sp && VaultConfig.get().announceTargetOnCycle()) {
-            String targetName = targetVaultUUID.equals(UniversalVault.GLOBAL_VAULT_UUID)
-                    ? Component.translatable("gui.universal_vault.target_global").getString()
-                    : player.getName().getString();
-            sp.sendSystemMessage(
-                    Component.translatable("gui.universal_vault.target_changed", targetName));
-        }
+        return null;
     }
 
     @Override
     protected void saveAdditional(@Nonnull ValueOutput output) {
         super.saveAdditional(output);
-        output.store("TargetVault", UUIDUtil.CODEC, this.targetVaultUUID);
+        output.store("OwnerUUID", UUIDUtil.CODEC, this.ownerUUID);
         ContainerHelper.saveAllItems(output, this.filters);
     }
 
     @Override
     protected void loadAdditional(@Nonnull ValueInput input) {
         super.loadAdditional(input);
-        input.read("TargetVault", UUIDUtil.CODEC).ifPresent(uuid -> this.targetVaultUUID = uuid);
+        input.read("OwnerUUID", UUIDUtil.CODEC).ifPresent(u -> this.ownerUUID = u);
         ContainerHelper.loadAllItems(input, this.filters);
     }
 

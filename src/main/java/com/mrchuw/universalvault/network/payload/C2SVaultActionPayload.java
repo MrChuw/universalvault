@@ -35,6 +35,8 @@ public record C2SVaultActionPayload(
         DEPOSIT_ONE,
         DROP_ONE,
         DROP_STACK,
+        CONSUME_CARRIED,
+        GIVE_TO_CARRIED,
     }
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ItemKey> ITEM_KEY_STREAM_CODEC = StreamCodec.composite(

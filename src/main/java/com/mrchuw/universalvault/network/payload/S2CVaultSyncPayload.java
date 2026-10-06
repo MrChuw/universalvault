@@ -1,6 +1,7 @@
 package com.mrchuw.universalvault.network.payload;
 
 import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.automation.network.S2CPatternsSyncPayload;
 import com.mrchuw.universalvault.storage.ItemKey;
 import java.util.List;
 import net.minecraft.core.component.DataComponentPatch;
@@ -10,11 +11,14 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-public record S2CVaultSyncPayload(List<Entry> entries) implements CustomPacketPayload {
+public record S2CVaultSyncPayload(
+        List<Entry> entries,
+        List<S2CPatternsSyncPayload.Entry> patterns
+) implements CustomPacketPayload {
+
     public static final Type<S2CVaultSyncPayload> TYPE = new Type<>(
-        Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_sync")
+            Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_sync")
     );
 
     public record Entry(ItemKey key, long count) {
@@ -26,11 +30,14 @@ public record S2CVaultSyncPayload(List<Entry> entries) implements CustomPacketPa
         );
     }
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, S2CVaultSyncPayload> STREAM_CODEC = StreamCodec.composite(
-        Entry.STREAM_CODEC.apply(ByteBufCodecs.list()),
-        S2CVaultSyncPayload::entries,
-        S2CVaultSyncPayload::new
-    );
+    public static final StreamCodec<RegistryFriendlyByteBuf, S2CVaultSyncPayload> STREAM_CODEC =
+            StreamCodec.composite(
+                    Entry.STREAM_CODEC.apply(ByteBufCodecs.list()),
+                    S2CVaultSyncPayload::entries,
+                    S2CPatternsSyncPayload.Entry.STREAM_CODEC.apply(ByteBufCodecs.list()),
+                    S2CVaultSyncPayload::patterns,
+                    S2CVaultSyncPayload::new
+            );
 
     @Override
     public @Nonnull Type<? extends CustomPacketPayload> type() {

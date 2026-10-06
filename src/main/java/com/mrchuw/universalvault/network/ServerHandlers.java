@@ -1,22 +1,21 @@
 package com.mrchuw.universalvault.network;
 
-import com.mrchuw.universalvault.gui.menu.VaultMenu;
 import com.mrchuw.universalvault.network.payload.C2SVaultActionPayload;
 import com.mrchuw.universalvault.network.payload.C2SVaultOpenPayload;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-
 
 public final class ServerHandlers {
 
     private ServerHandlers() {}
 
     public static void handleAction(Player player, C2SVaultActionPayload payload) {
-        if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
+        if (!(player instanceof ServerPlayer sp)) return;
         VaultActionHandler.handle(sp, payload);
     }
 
     public static void handleOpen(Player player, C2SVaultOpenPayload payload) {
-        if (!(player instanceof net.minecraft.server.level.ServerPlayer sp)) return;
+        if (!(player instanceof ServerPlayer sp)) return;
         VaultOpenHandler.handle(sp, payload);
     }
 }

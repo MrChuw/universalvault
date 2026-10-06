@@ -16,6 +16,13 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
+import com.mrchuw.universalvault.automation.handler.ItemAutomationHandler;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+
 
 public class NeoforgePlatformImpl implements Platform {
 
@@ -60,6 +67,13 @@ public class NeoforgePlatformImpl implements Platform {
                 ),
                 buf -> buf.writeBlockPos(pos)
         );
+    }
+
+    @Override
+    public ItemAutomationHandler findItemHandler(Level level, BlockPos pos, Direction side) {
+        ResourceHandler<ItemResource> h = level.getCapability(Capabilities.Item.BLOCK, pos, null);
+        if (h == null) h = level.getCapability(Capabilities.Item.BLOCK, pos, side);
+        return h == null ? null : new NeoforgeItemAutomationHandler(h);
     }
 }
 //?}

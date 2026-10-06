@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 public class VaultMenuHelper {
-    public static void openVault(ServerPlayer player, UUID targetVaultUUID, Component title) {
-        Platform.INSTANCE.openVaultMenu(player, targetVaultUUID, title);
+    public static void openVault(ServerPlayer player, UUID ownerUUID, Component title) {
+        Platform.INSTANCE.openVaultMenu(player, ownerUUID, title);
     }
 }

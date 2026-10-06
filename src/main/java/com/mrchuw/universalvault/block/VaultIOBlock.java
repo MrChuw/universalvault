@@ -1,9 +1,7 @@
 package com.mrchuw.universalvault.block;
 
-
 import com.mrchuw.universalvault.Platform;
 import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
-import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.VaultIOData;
 import java.util.ArrayList;
@@ -12,12 +10,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -28,6 +24,7 @@ import net.minecraft.world.level.block.Block;
 /*import net.minecraft.world.level.block.RenderShape;
 import com.mojang.serialization.MapCodec;
 *///?}
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -36,8 +33,7 @@ public class VaultIOBlock extends BaseEntityBlock {
 
     //? if <=26.2 {
     /*public static final MapCodec<VaultIOBlock> CODEC = simpleCodec(VaultIOBlock::new);
-
-     *///?}
+    *///?}
 
     public VaultIOBlock(Properties properties) {
         super(properties);
@@ -53,7 +49,6 @@ public class VaultIOBlock extends BaseEntityBlock {
     public @Nonnull RenderShape getRenderShape(@Nonnull BlockState state) {
         return RenderShape.MODEL;
     }
-
     *///?}
 
     @Nullable
@@ -72,18 +67,20 @@ public class VaultIOBlock extends BaseEntityBlock {
     ) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.isClientSide()) return;
+        if (!(level.getBlockEntity(pos) instanceof VaultIOBlockEntity be)) return;
 
-        if (level.getBlockEntity(pos) instanceof VaultIOBlockEntity be) {
-            VaultIOData data = stack.get(ModRegistry.VAULT_IO_DATA.get());
-            if (data != null) {
-                be.setTargetVaultUUID(data.targetVault());
-                for (int i = 0; i < VaultIOBlockEntity.FILTER_SLOTS; i++) {
-                    ItemStack filter = i < data.filters().size() ? data.filters().get(i) : ItemStack.EMPTY;
-                    be.setFilter(i, filter);
-                }
-            } else {
-                be.setChanged();
+        VaultIOData data = stack.get(ModRegistry.VAULT_IO_DATA.get());
+        if (data != null) {
+            be.setOwnerUUID(data.owner());
+            for (int i = 0; i < VaultIOBlockEntity.FILTER_SLOTS; i++) {
+                ItemStack filter = i < data.filters().size()
+                        ? data.filters().get(i) : ItemStack.EMPTY;
+                be.setFilter(i, filter);
             }
+        } else if (placer instanceof Player p) {
+            be.setOwnerUUID(p.getUUID());
+        } else {
+            be.setChanged();
         }
     }
 
@@ -105,19 +102,19 @@ public class VaultIOBlock extends BaseEntityBlock {
         player.causeFoodExhaustion(0.005F);
         //? if <=26.2 {
         /*if (level.isClientSide()) return;
-         *///?}
+        *///?}
         dropWithEmbeddedData(level, pos, blockEntity);
     }
 
     private void dropWithEmbeddedData(Level level, BlockPos pos, @Nullable BlockEntity blockEntity) {
-        // Custom drop carrying the embedded data
         ItemStack drop = new ItemStack(this);
         if (blockEntity instanceof VaultIOBlockEntity be) {
             List<ItemStack> filters = new ArrayList<>();
             for (int i = 0; i < VaultIOBlockEntity.FILTER_SLOTS; i++) {
                 filters.add(be.getFilter(i).copy());
             }
-            drop.set(ModRegistry.VAULT_IO_DATA.get(), new VaultIOData(be.getTargetVaultUUID(), filters));
+            drop.set(ModRegistry.VAULT_IO_DATA.get(),
+                    new VaultIOData(be.getOwnerUUID(), filters));
         }
         Block.popResource(level, pos, drop);
     }
@@ -139,7 +136,13 @@ public class VaultIOBlock extends BaseEntityBlock {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
 
         if (player.isShiftKeyDown()) {
-            ioBe.cycleTarget(player);
+            if (!(player instanceof ServerPlayer sp)) return InteractionResult.SUCCESS_SERVER;
+            if (!ioBe.hasOwner()) return InteractionResult.SUCCESS_SERVER;
+
+            Platform.INSTANCE.openVaultMenu(
+                    sp,
+                    ioBe.getOwnerUUID(),
+                    Component.translatable("gui.universal_vault.personal_title"));
             return InteractionResult.SUCCESS_SERVER;
         }
 

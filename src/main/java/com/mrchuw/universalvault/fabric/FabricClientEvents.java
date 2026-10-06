@@ -20,10 +20,8 @@ public class FabricClientEvents {
         MenuScreens.register(ModRegistry.VAULT_FILTER_MENU.get(), VaultFilterScreen::new);
 
         //? if <26.1 {
-        /^KeyBindingHelper.registerKeyBinding(VaultKeyBindings.OPEN_GLOBAL_VAULT);
-        KeyBindingHelper.registerKeyBinding(VaultKeyBindings.OPEN_PERSONAL_VAULT);
+        /^KeyBindingHelper.registerKeyBinding(VaultKeyBindings.OPEN_PERSONAL_VAULT);
         ^///?} else {
-        KeyMappingHelper.registerKeyMapping(VaultKeyBindings.OPEN_GLOBAL_VAULT);
         KeyMappingHelper.registerKeyMapping(VaultKeyBindings.OPEN_PERSONAL_VAULT);
         //?}
 

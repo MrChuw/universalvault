@@ -10,16 +10,16 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 
-public record VaultIOData(UUID targetVault, List<ItemStack> filters) {
+public record VaultIOData(UUID owner, List<ItemStack> filters) {
 
     public static final Codec<VaultIOData> CODEC = RecordCodecBuilder.create(inst -> inst.group(
-            UUIDUtil.CODEC.fieldOf("target").forGetter(VaultIOData::targetVault),
+            UUIDUtil.CODEC.fieldOf("owner").forGetter(VaultIOData::owner),
             ItemStack.OPTIONAL_CODEC.listOf().fieldOf("filters").forGetter(VaultIOData::filters)
     ).apply(inst, VaultIOData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, VaultIOData> STREAM_CODEC =
             StreamCodec.composite(
-                    UUIDUtil.STREAM_CODEC, VaultIOData::targetVault,
+                    UUIDUtil.STREAM_CODEC, VaultIOData::owner,
                     ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()), VaultIOData::filters,
                     VaultIOData::new
             );

@@ -2,29 +2,36 @@ package com.mrchuw.universalvault.fabric;
 
 //? fabric {
 /*import com.mrchuw.universalvault.Platform;
+import com.mrchuw.universalvault.automation.handler.ItemAutomationHandler;
+import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.config.VaultClientConfig;
 import com.mrchuw.universalvault.config.VaultConfig;
+import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
 import java.util.UUID;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
-import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
-import net.minecraft.core.BlockPos;
+import net.minecraft.world.inventory.MenuConstructor;
+import net.minecraft.world.level.Level;
 
 //? if <26.1 {
 /^import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.network.FriendlyByteBuf;
 ^///?} else {
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
-//?}
+ //?}
 
 public class FabricPlatformImpl implements Platform {
 
@@ -48,79 +55,34 @@ public class FabricPlatformImpl implements Platform {
 
     @Override
     public void openVaultMenu(ServerPlayer player, UUID targetVaultUuid, Component title) {
-        //? if <26.1 {
-        /^player.openMenu(new ExtendedScreenHandlerFactory<UUID>() {
-            @Override
-            public UUID getScreenOpeningData(ServerPlayer player) {
-                return targetVaultUuid;
-            }
-
-            @Override
-            public Component getDisplayName() {
-                return title;
-            }
-
-            @Override
-            public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player p) {
-                return new VaultMenu(syncId, inv, targetVaultUuid);
-            }
-        });
-        ^///?} else {
-        player.openMenu(new ExtendedMenuProvider<UUID>() {
-            @Override
-            public UUID getScreenOpeningData(ServerPlayer player) {
-                return targetVaultUuid;
-            }
-
-            @Override
-            public Component getDisplayName() {
-                return title;
-            }
-
-            @Override
-            public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player p) {
-                return new VaultMenu(syncId, inv, targetVaultUuid);
-            }
-        });
-        //?}
+        player.openMenu(createExtendedMenu(title, targetVaultUuid, (syncId, inv, p) -> new VaultMenu(syncId, inv, targetVaultUuid)));
     }
 
     @Override
     public void openVaultFilterMenu(ServerPlayer player, VaultIOBlockEntity ioBe, BlockPos pos, Component title) {
+        player.openMenu(createExtendedMenu(title, pos, (syncId, inv, p) -> new VaultFilterMenu(syncId, inv, ioBe)));
+    }
+
+    @Override
+    public ItemAutomationHandler findItemHandler(Level level, BlockPos pos, Direction side) {
+        Storage<ItemVariant> h = ItemStorage.SIDED.find(level, pos, null);
+        if (h == null && side != null) h = ItemStorage.SIDED.find(level, pos, side);
+        return h == null ? null : new FabricItemAutomationHandler(h);
+    }
+
+    private static <T> MenuProvider createExtendedMenu(Component title, T data, MenuConstructor constructor) {
         //? if <26.1 {
-        /^player.openMenu(new ExtendedScreenHandlerFactory<BlockPos>() {
-            @Override
-            public BlockPos getScreenOpeningData(ServerPlayer player) {
-                return pos;
-            }
-
-            @Override
-            public Component getDisplayName() {
-                return title;
-            }
-
-            @Override
-            public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player p) {
-                return new VaultFilterMenu(syncId, inv, ioBe);
-            }
-        });
+        /^return new ExtendedScreenHandlerFactory<T>() {
+            @Override public T getScreenOpeningData(ServerPlayer player) { return data; }
+            @Override public Component getDisplayName() { return title; }
+            @Override public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player p) { return constructor.createMenu(syncId, inv, p); }
+        };
         ^///?} else {
-        player.openMenu(new ExtendedMenuProvider<BlockPos>() {
-            @Override
-            public BlockPos getScreenOpeningData(ServerPlayer player) {
-                return pos;
-            }
-
-            @Override
-            public Component getDisplayName() {
-                return title;
-            }
-
-            @Override
-            public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player p) {
-                return new VaultFilterMenu(syncId, inv, ioBe);
-            }
-        });
+        return new ExtendedMenuProvider<T>() {
+            @Override public T getScreenOpeningData(ServerPlayer player) { return data; }
+            @Override public Component getDisplayName() { return title; }
+            @Override public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player p) { return constructor.createMenu(syncId, inv, p); }
+        };
         //?}
     }
 }

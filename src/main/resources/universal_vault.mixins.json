@@ -3,6 +3,9 @@
   "package": "com.mrchuw.universalvault.mixin",
   "compatibilityLevel": "${java}",
   "mixins": [],
+  "client": [
+    "client.AbstractContainerScreenMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

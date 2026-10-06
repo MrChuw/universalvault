@@ -228,7 +228,7 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
     }
 
     private int extractFromStorage(VaultStorage storage, ItemKey key, int amount, TransactionContext transaction) {
-        long current = storage.getAmount(key);
+        long current = storage.getStock(key);
         if (current <= 0) return 0;
 
         int toExtract = (int) Math.min(amount, current);
@@ -247,7 +247,7 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
         if (this == obj) return true;
         if (!(obj instanceof NeoforgeItemHandler other)) return false;
 
-        if (!this.blockEntity.getTargetVaultUUID().equals(other.blockEntity.getTargetVaultUUID())) {
+        if (!this.blockEntity.getOwnerUUID().equals(other.blockEntity.getOwnerUUID())) {
             return false;
         }
 
@@ -266,7 +266,7 @@ public class NeoforgeItemHandler implements ResourceHandler<ItemResource> {
 
     @Override
     public int hashCode() {
-        return this.blockEntity.getTargetVaultUUID().hashCode();
+        return this.blockEntity.getOwnerUUID().hashCode();
     }
 
     private static class SharedVaultJournal extends SnapshotJournal<Map<ItemKey, Long>> {

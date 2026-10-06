@@ -37,8 +37,7 @@ public class VaultCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         var vaultNode = Commands.literal("vault")
-                .executes(VaultCommand::openGlobalVault)
-                .then(Commands.literal("global").executes(VaultCommand::openGlobalVault))
+                .executes(VaultCommand::openPersonalVault)
                 .then(Commands.literal("personal").executes(VaultCommand::openPersonalVault))
                 .then(
                         Commands.literal("player")
@@ -243,17 +242,6 @@ public class VaultCommand {
              *///?}
         }
         return stack;
-    }
-
-    private static int openGlobalVault(CommandContext<CommandSourceStack> ctx)
-            throws CommandSyntaxException {
-        ServerPlayer player = ctx.getSource().getPlayerOrException();
-        VaultMenuHelper.openVault(
-                player,
-                UniversalVault.GLOBAL_VAULT_UUID,
-                Component.translatable("gui.universal_vault.global_title")
-        );
-        return 1;
     }
 
     private static int openPersonalVault(CommandContext<CommandSourceStack> ctx)

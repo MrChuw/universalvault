@@ -37,6 +37,7 @@ public class NeoforgeEntrypoint {
         NeoforgeRegistry.register(modBus);
         NeoforgeNetwork.register(modBus);
         NeoforgeEvents.register(modBus);
+        NeoforgeAutomationHook.register(modBus);
 
         container.registerConfig(ModConfig.Type.SERVER, SERVER_SPEC);
         container.registerConfig(ModConfig.Type.CLIENT, CLIENT_SPEC);

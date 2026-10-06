@@ -46,4 +46,11 @@ public record ItemKey(Identifier itemId, DataComponentPatch components) {
         stack.applyComponentsAndValidate(components);
         return stack;
     }
+
+    public static @Nullable ItemKey ofId(Identifier id) {
+        if (id == null) return null;
+        Item item = BuiltInRegistries.ITEM.getValue(id);
+        if (item == Items.AIR) return null;
+        return new ItemKey(id, DataComponentPatch.EMPTY);
+    }
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.resources.Identifier;
 //? if >=26.1 {
 import net.minecraft.resources.Identifier;
 //?}
@@ -23,7 +24,10 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 
 public class VaultSavedData extends SavedData {
 
+    private static final int CURRENT_SCHEMA = 1;
+
     private transient ServerLevel level;
+    private int schema = CURRENT_SCHEMA;
 
     private record Entry(ItemKey key, long count) {
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance ->
@@ -34,11 +38,18 @@ public class VaultSavedData extends SavedData {
         );
     }
 
-    private record VaultEntry(UUID owner, List<Entry> entries) {
+    private record VaultEntry(
+            UUID owner,
+            List<Entry> entries,
+            Map<Identifier, Long> reserved
+    ) {
         public static final Codec<VaultEntry> CODEC = RecordCodecBuilder.create(instance ->
                 instance.group(
                         UUIDUtil.CODEC.fieldOf("owner").forGetter(VaultEntry::owner),
-                        Entry.CODEC.listOf().fieldOf("entries").forGetter(VaultEntry::entries)
+                        Entry.CODEC.listOf().fieldOf("entries").forGetter(VaultEntry::entries),
+                        Codec.unboundedMap(Identifier.CODEC, Codec.LONG)
+                                .optionalFieldOf("reserved", Map.of())
+                                .forGetter(VaultEntry::reserved)
                 ).apply(instance, VaultEntry::new)
         );
     }
@@ -47,26 +58,33 @@ public class VaultSavedData extends SavedData {
 
     public static final Codec<VaultSavedData> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
+                    Codec.INT.optionalFieldOf("schema", CURRENT_SCHEMA).forGetter(VaultSavedData::schema),
                     LIST_CODEC.fieldOf("vaults").forGetter(data -> {
                         List<VaultEntry> vaultList = new ArrayList<>();
                         for (Map.Entry<UUID, VaultStorage> entry : data.vaults.entrySet()) {
+                            VaultStorage storage = entry.getValue();
                             List<Entry> entries = new ArrayList<>();
-                            for (Map.Entry<ItemKey, Long> itemEntry : entry.getValue().getAllItems().entrySet()) {
+                            for (Map.Entry<ItemKey, Long> itemEntry : storage.getAllItems().entrySet()) {
                                 entries.add(new Entry(itemEntry.getKey(), itemEntry.getValue()));
                             }
-                            vaultList.add(new VaultEntry(entry.getKey(), entries));
+                            vaultList.add(new VaultEntry(
+                                    entry.getKey(),
+                                    entries,
+                                    new HashMap<>(storage.getAllReserved())
+                            ));
                         }
                         return vaultList;
                     })
-            ).apply(instance, vaultList -> {
+            ).apply(instance, (schema, vaultList) -> {
                 VaultSavedData data = new VaultSavedData();
+                data.schema = schema;
                 for (VaultEntry ve : vaultList) {
                     VaultStorage storage = data.getOrCreateVault(ve.owner());
                     Map<ItemKey, Long> itemMap = new HashMap<>();
                     for (Entry e : ve.entries()) {
                         if (e.key() != null && e.count() > 0) itemMap.put(e.key(), e.count());
                     }
-                    storage.loadFromMap(itemMap);
+                    storage.loadFromMap(itemMap, ve.reserved());
                 }
                 return data;
             })
@@ -85,8 +103,9 @@ public class VaultSavedData extends SavedData {
 
     private final Map<UUID, VaultStorage> vaults = new ConcurrentHashMap<>();
 
-    public VaultSavedData() {
-        getOrCreateVault(UniversalVault.GLOBAL_VAULT_UUID);
+    public VaultSavedData() {}
+    public int schema() {
+        return schema;
     }
 
     public void setLevel(ServerLevel level) {

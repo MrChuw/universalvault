@@ -2,26 +2,34 @@ package com.mrchuw.universalvault.neoforge;
 
 //? neoforge {
 import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.automation.node.LogisticsNodeBlock;
+import com.mrchuw.universalvault.automation.node.LogisticsNodeBlockEntity;
+import com.mrchuw.universalvault.automation.pattern.VaultPattern;
 import com.mrchuw.universalvault.block.VaultIOBlock;
 import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
+import com.mrchuw.universalvault.item.EncodedPattern;
 import com.mrchuw.universalvault.item.VaultIOBlockItem;
 import com.mrchuw.universalvault.item.VaultRemoteItem;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.VaultIOData;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
@@ -47,13 +55,14 @@ public class NeoforgeRegistry {
         var vaultFilterMenu = MENUS.register("vault_filter_menu",
                 () -> IMenuTypeExtension.create(VaultFilterMenu::new));
 
+        // ---- Vault IO ---------------------------------------------------------
+
         var vaultIo = BLOCKS.register("vault_io", id ->
                 new VaultIOBlock(BlockBehaviour.Properties.of()
                         .setId(ResourceKey.create(Registries.BLOCK, id))
                         .strength(5.0F, 6.0F)
                         .requiresCorrectToolForDrops()));
 
-        // Inside factory lambdas, calling .get() is deferred until registration time:
         var vaultIoItem = ITEMS.register("vault_io", id ->
                 new VaultIOBlockItem(vaultIo.get(),
                         new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id))));
@@ -72,14 +81,57 @@ public class NeoforgeRegistry {
                         .networkSynchronized(VaultIOData.STREAM_CODEC)
                         .build());
 
+
+        var logisticsNode = BLOCKS.register("logistics_node", id ->
+                new LogisticsNodeBlock(BlockBehaviour.Properties.of()
+                        .setId(ResourceKey.create(Registries.BLOCK, id))
+                        .strength(5.0F, 6.0F)
+                        .requiresCorrectToolForDrops()));
+
+        var logisticsNodeItem = ITEMS.register("logistics_node", id ->
+                new net.minecraft.world.item.BlockItem(logisticsNode.get(),
+                        new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id))));
+
+        var logisticsNodeBe = BLOCK_ENTITIES.register("logistics_node",
+                () -> new BlockEntityType<>(LogisticsNodeBlockEntity::new, Set.of(logisticsNode.get())));
+
+
+        var encodedPatternComponent = DATA_COMPONENTS.register("encoded_pattern_data",
+                () -> DataComponentType.<VaultPattern>builder()
+                        .persistent(VaultPattern.CODEC)
+                        .networkSynchronized(new StreamCodec<RegistryFriendlyByteBuf, VaultPattern>() {
+                            @Override
+                            public VaultPattern decode(RegistryFriendlyByteBuf buf) {
+                                CompoundTag tag = buf.readNbt();
+                                if (tag == null) throw new IllegalStateException("missing pattern");
+                                return VaultPattern.CODEC.parse(NbtOps.INSTANCE, tag).getOrThrow();
+                            }
+                            @Override
+                            public void encode(RegistryFriendlyByteBuf buf, VaultPattern p) {
+                                CompoundTag tag = (CompoundTag) VaultPattern.CODEC
+                                        .encodeStart(NbtOps.INSTANCE, p).getOrThrow();
+                                buf.writeNbt(tag);
+                            }
+                        })
+                        .build());
+
+        var encodedPatternItem = ITEMS.register("encoded_pattern", id ->
+                new EncodedPattern(new Item.Properties()
+                        .setId(ResourceKey.create(Registries.ITEM, id))
+                        .stacksTo(1)));
+
+
         TABS.register("universal_vault", () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.universal_vault"))
                 .icon(() -> new ItemStack(vaultRemote.get()))
                 .displayItems((p, out) -> {
                     out.accept(vaultIoItem.get());
                     out.accept(vaultRemote.get());
+                    out.accept(logisticsNodeItem.get());
+                    out.accept(encodedPatternItem.get());
                 })
                 .build());
+
 
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
@@ -88,6 +140,7 @@ public class NeoforgeRegistry {
         DATA_COMPONENTS.register(modBus);
         TABS.register(modBus);
 
+
         ModRegistry.VAULT_MENU = (Supplier) vaultMenu;
         ModRegistry.VAULT_FILTER_MENU = (Supplier) vaultFilterMenu;
         ModRegistry.VAULT_IO = (Supplier) vaultIo;
@@ -95,6 +148,13 @@ public class NeoforgeRegistry {
         ModRegistry.VAULT_REMOTE = (Supplier) vaultRemote;
         ModRegistry.VAULT_IO_BLOCK_ENTITY = (Supplier) vaultIoBe;
         ModRegistry.VAULT_IO_DATA = (Supplier) vaultIoData;
+
+        ModRegistry.LOGISTICS_NODE = (Supplier) logisticsNode;
+        ModRegistry.LOGISTICS_NODE_ITEM = (Supplier) logisticsNodeItem;
+        ModRegistry.LOGISTICS_NODE_BLOCK_ENTITY = (Supplier) logisticsNodeBe;
+
+        ModRegistry.ENCODED_PATTERN = (Supplier) encodedPatternItem;
+        ModRegistry.ENCODED_PATTERN_DATA = (Supplier) encodedPatternComponent;
     }
 }
 //?}

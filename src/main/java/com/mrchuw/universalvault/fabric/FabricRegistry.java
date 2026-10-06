@@ -2,19 +2,28 @@ package com.mrchuw.universalvault.fabric;
 
 //? fabric {
 /*import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.automation.node.LogisticsNodeBlock;
+import com.mrchuw.universalvault.automation.node.LogisticsNodeBlockEntity;
+import com.mrchuw.universalvault.automation.pattern.VaultPattern;
 import com.mrchuw.universalvault.block.VaultIOBlock;
 import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.gui.menu.VaultFilterMenu;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
+import com.mrchuw.universalvault.item.EncodedPattern;
 import com.mrchuw.universalvault.item.VaultIOBlockItem;
 import com.mrchuw.universalvault.item.VaultRemoteItem;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.VaultIOData;
 import java.util.Set;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+
 //? if <26.2 {
 /^import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-^///?}
+ ^///?}
 
 //? if <26.1 {
 /^import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
@@ -45,8 +54,9 @@ public class FabricRegistry {
     public static void register() {
         Identifier vaultIoId = Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_io");
         Identifier vaultRemoteId = Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_remote");
+        Identifier logisticsNodeId = Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "logistics_node");
+        Identifier encodedPatternId = Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "encoded_pattern");
 
-        // ---- Block -----------------------------------------------------------
         //? if >=1.21.10 {
         ResourceKey<Block> vaultIoBlockKey = ResourceKey.create(Registries.BLOCK, vaultIoId);
         BlockBehaviour.Properties blockProperties = BlockBehaviour.Properties.of()
@@ -71,7 +81,6 @@ public class FabricRegistry {
 
         ModRegistry.VAULT_IO = () -> vaultIo;
 
-        // ---- Items -----------------------------------------------------------
         //? if >=1.21.10 {
         ResourceKey<Item> vaultIoItemKey = ResourceKey.create(Registries.ITEM, vaultIoId);
         Item.Properties vaultIoItemProps = new Item.Properties().setId(vaultIoItemKey);
@@ -93,19 +102,17 @@ public class FabricRegistry {
         ModRegistry.VAULT_IO_BLOCK_ITEM = () -> vaultIoItem;
         ModRegistry.VAULT_REMOTE = () -> vaultRemote;
 
-        // ---- Block entity type -----------------------------------------------
         BlockEntityType<VaultIOBlockEntity> beType = Registry.register(
                 BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 vaultIoId,
                 //? if <26.2 {
                 /^FabricBlockEntityTypeBuilder.create(VaultIOBlockEntity::new, vaultIo).build()
-                ^///?} else {
+                 ^///?} else {
                 new BlockEntityType<>(VaultIOBlockEntity::new, Set.of(vaultIo))
-                 //?}
+                //?}
         );
         ModRegistry.VAULT_IO_BLOCK_ENTITY = () -> beType;
 
-        // ---- Data component ---------------------------------------------------
         DataComponentType<VaultIOData> dataComp = Registry.register(
                 BuiltInRegistries.DATA_COMPONENT_TYPE,
                 Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_io_data"),
@@ -116,7 +123,90 @@ public class FabricRegistry {
         );
         ModRegistry.VAULT_IO_DATA = () -> dataComp;
 
-        // ---- Menu types ------------------------------------------------------
+        //? if >=1.21.10 {
+        ResourceKey<Block> logisticsBlockKey = ResourceKey.create(Registries.BLOCK, logisticsNodeId);
+        BlockBehaviour.Properties logisticsProps = BlockBehaviour.Properties.of()
+                .setId(logisticsBlockKey)
+                .strength(5.0F, 6.0F)
+                .requiresCorrectToolForDrops();
+        Block logisticsNode = Registry.register(
+                BuiltInRegistries.BLOCK,
+                logisticsBlockKey,
+                new LogisticsNodeBlock(logisticsProps)
+        );
+
+        ResourceKey<Item> logisticsItemKey = ResourceKey.create(Registries.ITEM, logisticsNodeId);
+        Item.Properties logisticsItemProps = new Item.Properties().setId(logisticsItemKey);
+        Item logisticsNodeItem = Registry.register(
+                BuiltInRegistries.ITEM,
+                logisticsItemKey,
+                new net.minecraft.world.item.BlockItem(logisticsNode, logisticsItemProps)
+        );
+        //?} else {
+        /^BlockBehaviour.Properties logisticsProps = BlockBehaviour.Properties.of()
+                .strength(5.0F, 6.0F)
+                .requiresCorrectToolForDrops();
+        Block logisticsNode = Registry.register(
+                BuiltInRegistries.BLOCK,
+                logisticsNodeId,
+                new LogisticsNodeBlock(logisticsProps)
+        );
+        Item logisticsNodeItem = Registry.register(
+                BuiltInRegistries.ITEM,
+                logisticsNodeId,
+                new net.minecraft.world.item.BlockItem(logisticsNode, new Item.Properties())
+        );
+        ^///?}
+
+        BlockEntityType<LogisticsNodeBlockEntity> logisticsBe = Registry.register(
+                BuiltInRegistries.BLOCK_ENTITY_TYPE,
+                logisticsNodeId,
+                //? if <26.2 {
+                /^FabricBlockEntityTypeBuilder.create(LogisticsNodeBlockEntity::new, logisticsNode).build()
+                 ^///?} else {
+                new BlockEntityType<>(LogisticsNodeBlockEntity::new, Set.of(logisticsNode))
+                //?}
+        );
+
+        ModRegistry.LOGISTICS_NODE = () -> logisticsNode;
+        ModRegistry.LOGISTICS_NODE_ITEM = () -> logisticsNodeItem;
+        ModRegistry.LOGISTICS_NODE_BLOCK_ENTITY = () -> logisticsBe;
+
+        //? if >=1.21.10 {
+        ResourceKey<Item> encodedPatternItemKey = ResourceKey.create(Registries.ITEM, encodedPatternId);
+        Item.Properties encodedPatternProps = new Item.Properties().setId(encodedPatternItemKey).stacksTo(1);
+        EncodedPattern encodedPattern = new EncodedPattern(encodedPatternProps);
+        Registry.register(BuiltInRegistries.ITEM, encodedPatternItemKey, encodedPattern);
+        //?} else {
+        /^EncodedPattern encodedPattern = new EncodedPattern(new Item.Properties().stacksTo(1));
+        Registry.register(BuiltInRegistries.ITEM, encodedPatternId, encodedPattern);
+        ^///?}
+
+        DataComponentType<VaultPattern> encodedPatternComp = Registry.register(
+                BuiltInRegistries.DATA_COMPONENT_TYPE,
+                Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "encoded_pattern_data"),
+                DataComponentType.<VaultPattern>builder()
+                        .persistent(VaultPattern.CODEC)
+                        .networkSynchronized(new StreamCodec<RegistryFriendlyByteBuf, VaultPattern>() {
+                            @Override
+                            public VaultPattern decode(RegistryFriendlyByteBuf buf) {
+                                CompoundTag tag = buf.readNbt();
+                                if (tag == null) throw new IllegalStateException("missing pattern");
+                                return VaultPattern.CODEC.parse(NbtOps.INSTANCE, tag).getOrThrow();
+                            }
+                            @Override
+                            public void encode(RegistryFriendlyByteBuf buf, VaultPattern p) {
+                                CompoundTag tag = (CompoundTag) VaultPattern.CODEC
+                                        .encodeStart(NbtOps.INSTANCE, p).getOrThrow();
+                                buf.writeNbt(tag);
+                            }
+                        })
+                        .build()
+        );
+
+        ModRegistry.ENCODED_PATTERN = () -> encodedPattern;
+        ModRegistry.ENCODED_PATTERN_DATA = () -> encodedPatternComp;
+
         MenuType<VaultMenu> vaultMenu = Registry.register(
                 BuiltInRegistries.MENU,
                 Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "vault_menu"),
@@ -157,17 +247,18 @@ public class FabricRegistry {
         );
         ModRegistry.VAULT_FILTER_MENU = () -> vaultFilterMenu;
 
-        // ---- Creative tab ----------------------------------------------------
         //? if <26.1 {
         /^CreativeModeTab tab = FabricItemGroup.builder()
-                ^///?} else {
-                CreativeModeTab tab = FabricCreativeModeTab.builder()
-                 //?}
+         ^///?} else {
+        CreativeModeTab tab = FabricCreativeModeTab.builder()
+                //?}
                 .title(Component.translatable("itemGroup.universal_vault"))
                 .icon(() -> new ItemStack(vaultRemote))
                 .displayItems((params, output) -> {
                     output.accept(new ItemStack(vaultIoItem));
                     output.accept(new ItemStack(vaultRemote));
+                    output.accept(new ItemStack(logisticsNodeItem));
+                    output.accept(new ItemStack(encodedPattern));
                 })
                 .build();
 

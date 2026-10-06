@@ -1,14 +1,18 @@
 package com.mrchuw.universalvault;
 
+import com.mrchuw.universalvault.automation.handler.ItemAutomationHandler;
 import com.mrchuw.universalvault.block.entity.VaultIOBlockEntity;
 import com.mrchuw.universalvault.config.VaultClientConfig;
 import com.mrchuw.universalvault.config.VaultConfig;
 import java.util.UUID;
+import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 
 public interface Platform {
 
@@ -29,4 +33,7 @@ public interface Platform {
 
     void openVaultMenu(ServerPlayer player, UUID targetVaultUuid, Component title);
     void openVaultFilterMenu(ServerPlayer player, VaultIOBlockEntity ioBe, BlockPos pos, Component title);
+
+    @Nullable
+    ItemAutomationHandler findItemHandler(Level level, BlockPos pos, Direction side);
 }

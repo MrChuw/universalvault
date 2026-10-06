@@ -1,16 +1,18 @@
 package com.mrchuw.universalvault.client;
 
 public enum VaultSortMode {
-    COUNT_DESC("gui.universal_vault.sort.count_desc"),
-    COUNT_ASC ("gui.universal_vault.sort.count_asc"),
-    NAME_ASC  ("gui.universal_vault.sort.name_asc"),
-    NAME_DESC ("gui.universal_vault.sort.name_desc"),
-    MOD       ("gui.universal_vault.sort.mod");
+    COUNT_DESC("gui.universal_vault.sort.count_desc", "↓"),
+    COUNT_ASC ("gui.universal_vault.sort.count_asc",  "↑"),
+    NAME_ASC  ("gui.universal_vault.sort.name_asc",   "A-Z"),
+    NAME_DESC ("gui.universal_vault.sort.name_desc",  "Z-A"),
+    MOD       ("gui.universal_vault.sort.mod",        "M");
 
     public final String langKey;
+    public final String shortLabel;
 
-    VaultSortMode(String langKey) {
+    VaultSortMode(String langKey, String shortLabel) {
         this.langKey = langKey;
+        this.shortLabel = shortLabel;
     }
 
     public VaultSortMode next() {

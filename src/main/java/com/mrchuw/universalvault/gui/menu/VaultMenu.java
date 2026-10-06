@@ -1,19 +1,18 @@
 package com.mrchuw.universalvault.gui.menu;
 
 import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.automation.network.S2CPatternsSyncPayload;
+import com.mrchuw.universalvault.automation.pattern.VaultPattern;
+import com.mrchuw.universalvault.automation.pattern.VaultPatternsData;
 import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.network.payload.S2CVaultSyncPayload;
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.ItemKey;
 import com.mrchuw.universalvault.storage.VaultManager;
 import com.mrchuw.universalvault.storage.VaultStorage;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import com.mrchuw.universalvault.Platform;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
@@ -26,7 +25,6 @@ import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import com.mrchuw.universalvault.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -39,13 +37,13 @@ public class VaultMenu extends AbstractContainerMenu {
     public static final int TEXTURE_HEIGHT = 208;
 
     private static final int PLAYER_INV_START = 0;
-    private static final int PLAYER_INV_END = 27;
-    private static final int HOTBAR_START = 27;
     private static final int HOTBAR_END = 36;
+    private final PatternEditContainer patternContainer = new PatternEditContainer();
+    private EncodedPatternSlot patternSlot;
 
     private final Player player;
     private final Level level;
-    private final UUID targetVaultUUID;
+    private UUID ownerUUID;
     private static final Map<UUID, List<ServerPlayer>> VIEWERS = new HashMap<>();
 
     private static final Set<UUID> PENDING_SYNC = ConcurrentHashMap.newKeySet();
@@ -55,11 +53,11 @@ public class VaultMenu extends AbstractContainerMenu {
         this(containerId, playerInv, buf.readUUID());
     }
 
-    public VaultMenu(int containerId, Inventory playerInv, UUID targetVaultUUID) {
+    public VaultMenu(int containerId, Inventory playerInv, UUID ownerUUID) {
         super(ModRegistry.VAULT_MENU.get(), containerId);
         this.player = playerInv.player;
         this.level = playerInv.player.level();
-        this.targetVaultUUID = targetVaultUUID;
+        this.ownerUUID = ownerUUID;
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -70,6 +68,9 @@ public class VaultMenu extends AbstractContainerMenu {
         for (int col = 0; col < 9; col++) {
             this.addSlot(new Slot(playerInv, col, 9 + col * 18, 184));
         }
+
+        this.patternSlot = new EncodedPatternSlot(this.patternContainer, 0, -10000, -10000);
+        this.addSlot(this.patternSlot);
 
         registerViewer();
     }
@@ -91,25 +92,26 @@ public class VaultMenu extends AbstractContainerMenu {
 
     private void registerViewer() {
         if (player instanceof ServerPlayer sp && !player.level().isClientSide()) {
-            VIEWERS.computeIfAbsent(targetVaultUUID, k -> Collections.synchronizedList(new ArrayList<>())).add(sp);
-            if (VaultConfig.get().debugLogging())  {
-                UniversalVault.LOGGER.info("VaultMenu registered viewer {} for vault {}",
-                        sp.getName().getString(), targetVaultUUID);
+            VIEWERS.computeIfAbsent(ownerUUID,
+                    k -> Collections.synchronizedList(new ArrayList<>())).add(sp);
+            if (VaultConfig.get().debugLogging()) {
+                UniversalVault.LOGGER.info("VaultMenu registered viewer {} for owner {}",
+                        sp.getName().getString(), ownerUUID);
             }
         }
     }
 
     private void unregisterViewer() {
         if (player instanceof ServerPlayer sp && !player.level().isClientSide()) {
-            removeViewer(targetVaultUUID, sp);
+            removeViewer(ownerUUID, sp);
         }
     }
 
-    private static void removeViewer(UUID vaultUUID, ServerPlayer viewer) {
-        List<ServerPlayer> viewers = VIEWERS.get(vaultUUID);
+    private static void removeViewer(UUID ownerUUID, ServerPlayer viewer) {
+        List<ServerPlayer> viewers = VIEWERS.get(ownerUUID);
         if (viewers != null) {
             viewers.remove(viewer);
-            if (viewers.isEmpty()) VIEWERS.remove(vaultUUID);
+            if (viewers.isEmpty()) VIEWERS.remove(ownerUUID);
         }
     }
 
@@ -117,7 +119,7 @@ public class VaultMenu extends AbstractContainerMenu {
     public void addSlotListener(@Nonnull ContainerListener listener) {
         super.addSlotListener(listener);
         if (listener instanceof ServerPlayer sp) {
-            VIEWERS.computeIfAbsent(targetVaultUUID, k -> new ArrayList<>()).add(sp);
+            VIEWERS.computeIfAbsent(ownerUUID, k -> new ArrayList<>()).add(sp);
         }
     }
 
@@ -125,22 +127,38 @@ public class VaultMenu extends AbstractContainerMenu {
     public void removeSlotListener(@Nonnull ContainerListener listener) {
         super.removeSlotListener(listener);
         if (listener instanceof ServerPlayer sp) {
-            removeViewer(targetVaultUUID, sp);
+            removeViewer(ownerUUID, sp);
         }
     }
 
     public void syncVaultData(ServerPlayer serverPlayer) {
-        VaultStorage storage = VaultManager.getVault(this.level, this.targetVaultUUID);
+        VaultStorage storage = VaultManager.getVault(this.level, this.ownerUUID);
         if (storage == null) return;
 
-        List<S2CVaultSyncPayload.Entry> entries = buildSyncEntries(storage, true);
-        Platform.INSTANCE.sendToPlayer(serverPlayer, new S2CVaultSyncPayload(entries));   // ← mudou
+        List<S2CVaultSyncPayload.Entry> entries = buildSyncEntries(storage);
+        List<S2CPatternsSyncPayload.Entry> patterns = collectPatternEntries();
+        Platform.INSTANCE.sendToPlayer(serverPlayer,
+                new S2CVaultSyncPayload(entries, patterns));
     }
 
-    private static List<S2CVaultSyncPayload.Entry> buildSyncEntries(VaultStorage storage, boolean resolvedOnly) {
+    private List<S2CPatternsSyncPayload.Entry> collectPatternEntries() {
+        if (!(this.level instanceof ServerLevel sl)) return List.of();
+        VaultPatternsData data = VaultPatternsData.get(sl);
+        VaultStorage storage = VaultManager.getVault(sl, this.ownerUUID);
+
+        List<VaultPattern> patterns = data.getPatterns(this.ownerUUID);
+        List<S2CPatternsSyncPayload.Entry> out = new ArrayList<>(patterns.size());
+        for (VaultPattern p : patterns) {
+            long stock = storage != null ? storage.getStock(p.output()) : 0L;
+            out.add(new S2CPatternsSyncPayload.Entry(p, stock));
+        }
+        return out;
+    }
+
+    private static List<S2CVaultSyncPayload.Entry> buildSyncEntries(VaultStorage storage) {
         List<S2CVaultSyncPayload.Entry> entries = new ArrayList<>();
         for (Map.Entry<ItemKey, Long> entry : storage.getAllItems().entrySet()) {
-            if (resolvedOnly && !entry.getKey().isResolved()) continue;
+            if (!entry.getKey().isResolved()) continue;
             entries.add(new S2CVaultSyncPayload.Entry(entry.getKey(), entry.getValue()));
         }
         return entries;
@@ -150,6 +168,17 @@ public class VaultMenu extends AbstractContainerMenu {
     public void removed(@Nonnull Player player) {
         super.removed(player);
         unregisterViewer();
+
+        if (!patternContainer.isEmpty()) {
+            ItemStack stack = patternContainer.removeItemNoUpdate(0);
+            if (!stack.isEmpty() && !player.getInventory().add(stack)) {
+                //? if <=26.2 {
+                /*player.drop(stack, false);
+                 *///?} else {
+                player.drop(stack, false, net.minecraft.util.Prediction.PREDICTED);
+                //?}
+            }
+        }
     }
 
     @Override
@@ -161,12 +190,21 @@ public class VaultMenu extends AbstractContainerMenu {
     public @Nonnull ItemStack quickMoveStack(@Nonnull Player player, int index) {
         Slot slot = this.slots.get(index);
         if (slot == null || !slot.hasItem()) return ItemStack.EMPTY;
-
         if (this.level.isClientSide()) return ItemStack.EMPTY;
+
+        if (slot instanceof EncodedPatternSlot) {
+            ItemStack stack = slot.getItem();
+            ItemStack copy = stack.copy();
+            if (player.getInventory().add(stack)) {
+                slot.set(ItemStack.EMPTY);
+                return copy;
+            }
+            return ItemStack.EMPTY;
+        }
 
         if (index >= PLAYER_INV_START && index < HOTBAR_END) {
             ItemStack stack = slot.getItem();
-            VaultStorage storage = VaultManager.getVault(this.level, this.targetVaultUUID);
+            VaultStorage storage = VaultManager.getVault(this.level, this.ownerUUID);
             if (storage != null) {
                 long inserted = storage.insert(stack, false);
                 if (inserted > 0) {
@@ -181,35 +219,43 @@ public class VaultMenu extends AbstractContainerMenu {
         return ItemStack.EMPTY;
     }
 
-    public UUID getTargetVaultUUID() {
-        return this.targetVaultUUID;
+    public UUID getOwnerUUID() {
+        return this.ownerUUID;
     }
 
-    public static void broadcastVaultUpdate(UUID vaultUUID, ServerLevel level) {
-        List<ServerPlayer> viewers = VIEWERS.get(vaultUUID);
+    public static void broadcastVaultUpdate(UUID ownerUUID, ServerLevel level) {
+        List<ServerPlayer> viewers = VIEWERS.get(ownerUUID);
         if (viewers == null || viewers.isEmpty()) return;
 
-        VaultStorage storage = VaultManager.getVault(level, vaultUUID);
+        VaultStorage storage = VaultManager.getVault(level, ownerUUID);
         if (storage == null) return;
 
         List<S2CVaultSyncPayload.Entry> entries = new ArrayList<>();
         for (Map.Entry<ItemKey, Long> entry : storage.getAllItems().entrySet()) {
             entries.add(new S2CVaultSyncPayload.Entry(entry.getKey(), entry.getValue()));
         }
-        S2CVaultSyncPayload payload = new S2CVaultSyncPayload(entries);
+
+        VaultPatternsData data = VaultPatternsData.get(level);
+        List<VaultPattern> patterns = data.getPatterns(ownerUUID);
+        List<S2CPatternsSyncPayload.Entry> patternEntries = new ArrayList<>(patterns.size());
+        for (VaultPattern p : patterns) {
+            long stock = storage.getStock(p.output());
+            patternEntries.add(new S2CPatternsSyncPayload.Entry(p, stock));
+        }
+
+        S2CVaultSyncPayload payload = new S2CVaultSyncPayload(entries, patternEntries);
 
         for (ServerPlayer player : viewers) {
             if (player.containerMenu instanceof VaultMenu menu
-                    && menu.targetVaultUUID.equals(vaultUUID)
+                    && menu.ownerUUID.equals(ownerUUID)
                     && player.isAlive()) {
                 Platform.INSTANCE.sendToPlayer(player, payload);
             }
         }
     }
 
-
-    public static void markPendingSync(UUID vaultUUID) {
-        PENDING_SYNC.add(vaultUUID);
+    public static void markPendingSync(UUID ownerUUID) {
+        PENDING_SYNC.add(ownerUUID);
     }
 
     public static void processPendingSyncs(MinecraftServer server) {
@@ -223,5 +269,17 @@ public class VaultMenu extends AbstractContainerMenu {
             broadcastVaultUpdate(uuid, overworld);
         }
         PENDING_SYNC.clear();
+    }
+
+    public @Nullable EncodedPatternSlot getPatternSlot() {
+        return patternSlot;
+    }
+
+    public void repositionPatternSlot(int x, int y) {
+        if (this.patternSlot != null) {
+            this.slots.remove(this.patternSlot);
+        }
+        this.patternSlot = new EncodedPatternSlot(this.patternContainer, 0, x, y);
+        this.addSlot(this.patternSlot);
     }
 }

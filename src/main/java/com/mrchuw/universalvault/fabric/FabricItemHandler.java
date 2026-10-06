@@ -58,10 +58,6 @@ public class FabricItemHandler implements SlottedStorage<ItemVariant> {
         });
     }
 
-    // -----------------------------------------------------------------
-    // SlottedStorage
-    // -----------------------------------------------------------------
-
     @Override
     public int getSlotCount() {
         return getSlots().size();
@@ -105,11 +101,6 @@ public class FabricItemHandler implements SlottedStorage<ItemVariant> {
                 .iterator();
     }
 
-
-    // -----------------------------------------------------------------
-    // Storage (insert / extract / iterator)
-    // -----------------------------------------------------------------
-
     @Override
     public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
         VaultStorage s = storage();
@@ -145,10 +136,6 @@ public class FabricItemHandler implements SlottedStorage<ItemVariant> {
     public Iterator<StorageView<ItemVariant>> iterator() {
         return new ArrayList<StorageView<ItemVariant>>(getSlots()).iterator();
     }
-
-    // -----------------------------------------------------------------
-    // VaultView
-    // -----------------------------------------------------------------
 
     private class VaultView implements SingleSlotStorage<ItemVariant> {
         private final ItemKey key;
@@ -196,7 +183,7 @@ public class FabricItemHandler implements SlottedStorage<ItemVariant> {
         if (this == obj) return true;
         if (!(obj instanceof FabricItemHandler other)) return false;
 
-        if (!this.blockEntity.getTargetVaultUUID().equals(other.blockEntity.getTargetVaultUUID())) {
+        if (!this.blockEntity.getOwnerUUID().equals(other.blockEntity.getOwnerUUID())) {
             return false;
         }
 
@@ -215,7 +202,7 @@ public class FabricItemHandler implements SlottedStorage<ItemVariant> {
 
     @Override
     public int hashCode() {
-        return this.blockEntity.getTargetVaultUUID().hashCode();
+        return this.blockEntity.getOwnerUUID().hashCode();
     }
 
     private class EmptySlotView implements SingleSlotStorage<ItemVariant> {

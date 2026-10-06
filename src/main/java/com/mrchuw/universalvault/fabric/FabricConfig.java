@@ -5,12 +5,11 @@ package com.mrchuw.universalvault.fabric;
 import com.google.gson.GsonBuilder;
 import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.config.VaultConfig;
-import net.fabricmc.loader.api.FabricLoader;
-
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import net.fabricmc.loader.api.FabricLoader;
 
 public class FabricConfig implements VaultConfig {
 
@@ -24,34 +23,37 @@ public class FabricConfig implements VaultConfig {
         public int maxSlots = 0;
         public long maxPerSlot = 0L;
         public long maxTotalItems = 0L;
-        public int maxVirtualSlots = 54;
         public boolean hopperInteraction = true;
         public FilterMode defaultFilterMode = FilterMode.WHITELIST;
         public boolean syncOnEveryChange = true;
         public int syncIntervalTicks = 5;
         public int searchDebounceMs = 150;
         public boolean autoCreatePersonalVault = true;
-        public boolean announceTargetOnCycle = true;
+        public int customStationTickInterval = 5;
+
+        public double baselineExtractionRate = 1.0;
+        public double maxVelocityMultiplier = 16.0;
+        public long quickCraftCooldownMs = 200L;
+        public boolean enableUniversalQuickCraft = false;
     }
 
     private final Data data;
 
     public FabricConfig() {
         this.data = loadOrCreate();
+        validate();
     }
 
     private static Data loadOrCreate() {
         if (Files.exists(CONFIG_PATH)) {
             try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
                 Data loaded = GSON.fromJson(reader, Data.class);
-                if (loaded != null) {
-                    return loaded;
-                }
+                if (loaded != null) return loaded;
             } catch (Exception e) {
-                System.err.println("[" + UniversalVault.MOD_ID + "] Failed to read config file, falling back to defaults: " + e.getMessage());
+                System.err.println("[" + UniversalVault.MOD_ID
+                        + "] Failed to read config file, falling back to defaults: " + e.getMessage());
             }
         }
-
         Data defaultData = new Data();
         save(defaultData);
         return defaultData;
@@ -68,17 +70,33 @@ public class FabricConfig implements VaultConfig {
         }
     }
 
+    private void validate() {
+        if (data.maxVelocityMultiplier < 1.0) {
+            System.err.println("[" + UniversalVault.MOD_ID
+                    + "] maxVelocityMultiplier < 1.0; forcing 1.0");
+            data.maxVelocityMultiplier = 1.0;
+        }
+        if (data.baselineExtractionRate <= 0.0) {
+            System.err.println("[" + UniversalVault.MOD_ID
+                    + "] baselineExtractionRate <= 0; forcing 1.0");
+            data.baselineExtractionRate = 1.0;
+        }
+    }
+
     @Override public boolean debugLogging() { return data.debugLogging; }
     @Override public int maxSlots() { return data.maxSlots; }
     @Override public long maxPerSlot() { return data.maxPerSlot; }
     @Override public long maxTotalItems() { return data.maxTotalItems; }
-    @Override public int maxVirtualSlots() { return data.maxVirtualSlots; }
     @Override public boolean hopperInteraction() { return data.hopperInteraction; }
     @Override public FilterMode defaultFilterMode() { return data.defaultFilterMode; }
     @Override public boolean syncOnEveryChange() { return data.syncOnEveryChange; }
     @Override public int syncIntervalTicks() { return data.syncIntervalTicks; }
     @Override public int searchDebounceMs() { return data.searchDebounceMs; }
     @Override public boolean autoCreatePersonalVault() { return data.autoCreatePersonalVault; }
-    @Override public boolean announceTargetOnCycle() { return data.announceTargetOnCycle; }
+    @Override public int customStationTickInterval() { return data.customStationTickInterval; }
+    @Override public double baselineExtractionRate() { return data.baselineExtractionRate; }
+    @Override public double maxVelocityMultiplier() { return data.maxVelocityMultiplier; }
+    @Override public long quickCraftCooldownMs() { return data.quickCraftCooldownMs; }
+    @Override public boolean enableUniversalQuickCraft() { return data.enableUniversalQuickCraft; }
 }
 *///?}

@@ -1,6 +1,7 @@
 package com.mrchuw.universalvault.network;
 
 import com.mrchuw.universalvault.UniversalVault;
+import com.mrchuw.universalvault.automation.tracking.AdaptiveVelocityTracker;
 import com.mrchuw.universalvault.config.VaultConfig;
 import com.mrchuw.universalvault.gui.menu.VaultMenu;
 import com.mrchuw.universalvault.network.payload.C2SVaultActionPayload;
@@ -8,6 +9,8 @@ import com.mrchuw.universalvault.storage.ItemKey;
 import com.mrchuw.universalvault.storage.VaultManager;
 import com.mrchuw.universalvault.storage.VaultStorage;
 import java.util.UUID;
+
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -18,12 +21,14 @@ public final class VaultActionHandler {
     public static void handle(ServerPlayer player, C2SVaultActionPayload payload) {
         if (!(player.containerMenu instanceof VaultMenu vaultMenu)) return;
 
-        UUID targetUUID = vaultMenu.getTargetVaultUUID();
-        VaultStorage storage = VaultManager.getVault(player.level(), targetUUID);
+        UUID owner = vaultMenu.getOwnerUUID();
+        VaultStorage storage = VaultManager.getVault(player.level(), owner);
         if (storage == null) return;
 
         ItemKey key = payload.targetKey();
         if (key != null && !key.isResolved()) return;
+
+        long totalExtracted = 0;
 
         switch (payload.actionType()) {
 
@@ -43,13 +48,16 @@ public final class VaultActionHandler {
                 int toExtract = Math.min(amount, space);
                 if (toExtract > 0) {
                     ItemStack extracted = storage.extract(key, toExtract, false);
-                    if (!extracted.isEmpty()) player.getInventory().add(extracted);
+                    if (!extracted.isEmpty()) {
+                        player.getInventory().add(extracted);
+                        totalExtracted += extracted.getCount();
+                    }
                 }
             }
             case PICKUP -> {
                 if (key == null) return;
                 int amount = Math.clamp(payload.amount(), 1, 64);
-                pickupToCarried(player, storage, key, amount);
+                totalExtracted += pickupToCarried(player, storage, key, amount);
             }
             case PICKUP_ALL -> {
                 if (key == null) return;
@@ -57,7 +65,7 @@ public final class VaultActionHandler {
                 long available = storage.getAmount(key);
                 if (available <= 0) return;
                 int maxStack = maxStackFor(key);
-                pickupToCarried(player, storage, key, (int) Math.min(available, maxStack));
+                totalExtracted += pickupToCarried(player, storage, key, (int) Math.min(available, maxStack));
             }
             case PICKUP_HALF -> {
                 if (key == null) return;
@@ -65,7 +73,7 @@ public final class VaultActionHandler {
                 long available = storage.getAmount(key);
                 if (available <= 0) return;
                 int maxStack = maxStackFor(key);
-                pickupToCarried(player, storage, key, halfAmount(available, maxStack));
+                totalExtracted += pickupToCarried(player, storage, key, halfAmount(available, maxStack));
             }
 
             case QUICK_MOVE -> {
@@ -73,14 +81,14 @@ public final class VaultActionHandler {
                 long available = storage.getAmount(key);
                 if (available <= 0) return;
                 int maxStack = maxStackFor(key);
-                moveToPlayerInventory(player, storage, key, (int) Math.min(available, maxStack));
+                totalExtracted += moveToPlayerInventory(player, storage, key, (int) Math.min(available, maxStack));
             }
             case QUICK_MOVE_HALF -> {
                 if (key == null) return;
                 long available = storage.getAmount(key);
                 if (available <= 0) return;
                 int maxStack = maxStackFor(key);
-                moveToPlayerInventory(player, storage, key, halfAmount(available, maxStack));
+                totalExtracted += moveToPlayerInventory(player, storage, key, halfAmount(available, maxStack));
             }
             case DEPOSIT_ALL -> {
                 ItemStack carried = player.containerMenu.getCarried();
@@ -95,11 +103,14 @@ public final class VaultActionHandler {
             case DROP_ONE -> {
                 if (key == null) return;
                 ItemStack extracted = storage.extract(key, 1, false);
-                //? if <=26.2 {
-                /*if (!extracted.isEmpty()) player.drop(extracted, false);
-                 *///?} else {
-                if (!extracted.isEmpty()) player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
-                //?}
+                if (!extracted.isEmpty()) {
+                    //? if <=26.2 {
+                    /*player.drop(extracted, false);
+                    *///?} else {
+                    player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
+                     //?}
+                    totalExtracted += extracted.getCount();
+                }
             }
             case DROP_STACK -> {
                 if (key == null) return;
@@ -108,11 +119,15 @@ public final class VaultActionHandler {
                 int maxStack = maxStackFor(key);
                 int toDrop = (int) Math.min(available, maxStack);
                 ItemStack extracted = storage.extract(key, toDrop, false);
-                //? if <=26.2 {
-                /*if (!extracted.isEmpty()) player.drop(extracted, false);
-                 *///?} else {
-                if (!extracted.isEmpty()) player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
-                //?}
+                if (!extracted.isEmpty()) {
+                    //? if <=26.2 {
+                    /*player.drop(extracted, false);
+                    *///?} else {
+                    player.drop(extracted, false, net.minecraft.util.Prediction.PREDICTED);
+                     //?}
+                    totalExtracted += extracted.getCount();
+                }
+
             }
             case DEPOSIT_HELD -> {
                 ItemStack carried = player.containerMenu.getCarried();
@@ -134,10 +149,39 @@ public final class VaultActionHandler {
                     player.containerMenu.slotsChanged(player.getInventory());
                 }
             }
+            case CONSUME_CARRIED -> {
+                ItemStack carried = player.containerMenu.getCarried();
+                if (!carried.isEmpty()) {
+                    carried.shrink(1);
+                    player.containerMenu.setCarried(carried);
+                }
+            }
+            case GIVE_TO_CARRIED -> {
+                if (key == null) return;
+                ItemStack sample = key.toStack(1);
+                ItemStack carried = player.containerMenu.getCarried();
+                if (carried.isEmpty()) {
+                    player.containerMenu.setCarried(sample);
+                } else if (ItemStack.isSameItemSameComponents(carried, sample)
+                        && carried.getCount() < carried.getMaxStackSize()) {
+                    carried.grow(1);
+                    player.containerMenu.setCarried(carried);
+                } else {
+                    //? if <=26.2 {
+                    /*player.drop(sample, false);
+                     *///?} else {
+                    player.drop(sample, false, net.minecraft.util.Prediction.PREDICTED);
+                    //?}
+                }
+            }
         }
 
         player.containerMenu.broadcastChanges();
         vaultMenu.syncVaultData(player);
+
+        if (totalExtracted > 0 && player.level() instanceof ServerLevel serverLevel) {
+            AdaptiveVelocityTracker.recordPlayerExtract(serverLevel, totalExtracted);
+        }
     }
 
     private static int maxStackFor(ItemKey key) {
@@ -149,18 +193,25 @@ public final class VaultActionHandler {
         return half > maxStack ? (maxStack + 1) / 2 : (int) half;
     }
 
-    private static void pickupToCarried(ServerPlayer player, VaultStorage storage, ItemKey key, int amount) {
+
+    private static int pickupToCarried(ServerPlayer player, VaultStorage storage, ItemKey key, int amount) {
         ItemStack extracted = storage.extract(key, amount, false);
-        if (!extracted.isEmpty()) player.containerMenu.setCarried(extracted);
+        if (!extracted.isEmpty()) {
+            player.containerMenu.setCarried(extracted);
+            return extracted.getCount();
+        }
+        return 0;
     }
 
-    private static void moveToPlayerInventory(ServerPlayer player, VaultStorage storage, ItemKey key, int amount) {
+    private static int moveToPlayerInventory(ServerPlayer player, VaultStorage storage, ItemKey key, int amount) {
         ItemStack extracted = storage.extract(key, amount, false);
         if (!extracted.isEmpty()) {
             ItemStack remaining = extracted.copy();
             player.getInventory().add(remaining);
             if (!remaining.isEmpty()) storage.insert(remaining, false);
+            return extracted.getCount();
         }
+        return 0;
     }
 
     private static void insertAndShrinkCarried(ServerPlayer player, VaultStorage storage,
@@ -171,4 +222,5 @@ public final class VaultActionHandler {
             player.containerMenu.setCarried(carried);
         }
     }
+
 }

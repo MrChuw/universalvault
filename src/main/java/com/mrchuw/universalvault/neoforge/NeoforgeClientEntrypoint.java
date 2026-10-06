@@ -24,7 +24,6 @@ public class NeoforgeClientEntrypoint {
 
     @SubscribeEvent
     public static void registerKeys(RegisterKeyMappingsEvent event) {
-        event.register(VaultKeyBindings.OPEN_GLOBAL_VAULT);
         event.register(VaultKeyBindings.OPEN_PERSONAL_VAULT);
     }
 

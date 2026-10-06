@@ -4,10 +4,10 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mrchuw.universalvault.Platform;
 import com.mrchuw.universalvault.UniversalVault;
 import com.mrchuw.universalvault.network.payload.C2SVaultOpenPayload;
-import java.util.UUID;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
+
 
 public class VaultKeyBindings {
 
@@ -15,24 +15,13 @@ public class VaultKeyBindings {
             Identifier.fromNamespaceAndPath(UniversalVault.MOD_ID, "keys")
     );
 
-    public static final KeyMapping OPEN_GLOBAL_VAULT = new KeyMapping(
-            "key.universal_vault.open_global",
-            //? if <=26.2 {
-            /*InputConstants.Type.KEYSYM,
-             *///?} else {
-            InputConstants.Type.KEYBOARD,
-            //?}
-            InputConstants.KEY_V,
-            VAULT_CATEGORY
-    );
-
     public static final KeyMapping OPEN_PERSONAL_VAULT = new KeyMapping(
             "key.universal_vault.open_personal",
             //? if <=26.2 {
             /*InputConstants.Type.KEYSYM,
-             *///?} else {
+            *///?} else {
             InputConstants.Type.KEYBOARD,
-            //?}
+             //?}
             InputConstants.KEY_B,
             VAULT_CATEGORY
     );
@@ -45,13 +34,8 @@ public class VaultKeyBindings {
         /*if (mc.player == null || mc.screen != null) return;
          *///?}
 
-        sendOpenRequests(OPEN_GLOBAL_VAULT, UniversalVault.GLOBAL_VAULT_UUID);
-        sendOpenRequests(OPEN_PERSONAL_VAULT, mc.player.getUUID());
-    }
-
-    private static void sendOpenRequests(KeyMapping keyMapping, UUID targetVault) {
-        while (keyMapping.consumeClick()) {
-            Platform.INSTANCE.sendToServer(new C2SVaultOpenPayload(targetVault));
+        while (OPEN_PERSONAL_VAULT.consumeClick()) {
+            Platform.INSTANCE.sendToServer(new C2SVaultOpenPayload(mc.player.getUUID()));
         }
     }
 }

@@ -2,7 +2,9 @@ package com.mrchuw.universalvault.item;
 
 import com.mrchuw.universalvault.registry.ModRegistry;
 import com.mrchuw.universalvault.storage.VaultIOData;
+import java.util.UUID;
 import java.util.function.Consumer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -17,6 +19,7 @@ import net.minecraft.world.level.block.Block;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+
 public class VaultIOBlockItem extends BlockItem {
 
     public VaultIOBlockItem(Block block, Properties properties) {
@@ -24,19 +27,20 @@ public class VaultIOBlockItem extends BlockItem {
     }
 
     @Override
-    public @Nonnull InteractionResult use(@Nonnull Level level, @Nonnull Player player,
+    public @Nonnull InteractionResult use(@Nonnull Level level,
+                                          @Nonnull Player player,
                                           @Nonnull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         if (player.isShiftKeyDown() && stack.has(ModRegistry.VAULT_IO_DATA.get())) {
             if (!level.isClientSide()) {
                 stack.remove(ModRegistry.VAULT_IO_DATA.get());
-
                 //? if >=26.1 {
                 player.sendOverlayMessage(Component.translatable("gui.universal_vault.cleared"));
                 //?} else {
-                /*player.displayClientMessage(Component.translatable("gui.universal_vault.cleared"), true);
-                 *///?}
+                /*player.displayClientMessage(
+                        Component.translatable("gui.universal_vault.cleared"), true);
+                *///?}
             }
             return InteractionResult.SUCCESS;
         }
@@ -53,8 +57,27 @@ public class VaultIOBlockItem extends BlockItem {
         VaultIOData data = stack.get(ModRegistry.VAULT_IO_DATA.get());
         if (data != null) {
             tooltip.accept(Component.translatable("item.universal_vault.vault_io.configured"));
+
+            UUID owner = data.owner();
+            String ownerName = resolveOwnerName(owner);
+            tooltip.accept(Component.translatable(
+                    "item.universal_vault.vault_io.owner", ownerName));
+
             tooltip.accept(Component.translatable("item.universal_vault.vault_io.configured.hint"));
         }
         super.appendHoverText(stack, context, display, tooltip, flag);
+    }
+
+    private static String resolveOwnerName(UUID owner) {
+        if (owner == null || (owner.getMostSignificantBits() == 0L
+                && owner.getLeastSignificantBits() == 0L)) {
+            return "—";
+        }
+        var mc = Minecraft.getInstance();
+        if (mc.getConnection() != null) {
+            var info = mc.getConnection().getPlayerInfo(owner);
+            if (info != null) return info.getProfile().name();
+        }
+        return owner.toString().substring(0, 8);
     }
 }
